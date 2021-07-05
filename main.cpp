@@ -2,10 +2,14 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "piece.h"
 
 int main(){
-    int inp;
-    std::cin >> inp;
-    std::cout << "Number = " << inp << std::endl;
+    piece pawn(1,1,black);
+    int* x = pawn.giveCoords();
+    std::cout << x[0] << " " << x[1] << std::endl;
+    pawn.setCoords(2,3);
+    pawn.giveCoords();
+    std::cout << x[0] << " " << x[1] << std::endl;
     return 0;
 }
