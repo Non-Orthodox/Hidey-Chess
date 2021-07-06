@@ -1,0 +1,1 @@
+If having issues with libpng16-16.dll, then add libpng16-16.dll to the build directory, along with zlib1.dll.
