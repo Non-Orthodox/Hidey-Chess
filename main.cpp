@@ -7,13 +7,29 @@
 #include "basicVisuals.h"
 #include "settings.h"
 
+#define SETTINGS_LIST \
+    ENTRY("peer ip address", "localhost") \
+    ENTRY("peer network port", 2850) \
+    ENTRY("network port", 2851)
+
 void main_parseCommandLineArguments(int argc, char *argv[]) {
     // Initialize settings array.
-    // Setting *setting = new Setting("test", static_cast<bool>(false));
     SettingsList *settings = new SettingsList();
+    
+    // Register settings.
+#define ENTRY(ENTRY_name, ENTRY_value) settings->push(Setting(ENTRY_name, ENTRY_value));
+    SETTINGS_LIST
+#undef ENTRY
+    
+    Setting setting = (*settings).find("peer network port");
+    int peerNetworkPort = setting.getInt();
+    std::cout << "peer network port" << ": " << peerNetworkPort << std::endl;
 }
 
 int main(int argc, char *argv[]){
+    
+    main_parseCommandLineArguments(argc, argv);
+
     //Initializing SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {

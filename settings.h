@@ -20,7 +20,7 @@ private:
 		std::string *valueString;
 	};
 public:
-	std::string name = nullptr;
+	std::string name;
 	Setting(std::string name, bool value) {
 		this->name = name;
 		this->type = settingsType_boolean;
@@ -42,21 +42,27 @@ public:
 		this->valueString = new std::string();
 		*this->valueString = value;
 	}
+	Setting(std::string name, const char *value) {
+		this->name = name;
+		this->type = settingsType_string;
+		this->valueString = new std::string();
+		*this->valueString = value;
+	}
 	~Setting() {
 		name.clear();
 	}
 	template<typename T>
-	T get() {
-		switch (type) {
-		case settingsType_boolean:
-			return this->valueBool;
-		case settingsType_integer:
-			return this->valueInt;
-		case settingsType_float:
-			return this->valueFloat;
-		case settingsType_string:
-			return *this->valueString;
-		}
+	bool getBool() {
+		return this->valueBool;
+	}
+	int getInt() {
+		return this->valueInt;
+	}
+	float getFloat() {
+		return this->valueFloat;
+	}
+	std::string getString() {
+		return *this->valueString;
 	}
 	template<typename T>
 	void set(T value) {
