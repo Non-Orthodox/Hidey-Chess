@@ -7,6 +7,9 @@ project(Hidey-Chess VERSION 0.000001)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-Wall")
+
 # Executable
 add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp basicVisuals.cpp)
 
