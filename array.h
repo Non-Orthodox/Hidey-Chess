@@ -27,7 +27,7 @@ public:
 		// length = 0;
 		// memsize = 0;
 	}
-	Array operator[](std::ptrdiff_t index) {
+	auto operator[](std::ptrdiff_t index) {
 		return array[index];
 	}
 	void push(T value) {
