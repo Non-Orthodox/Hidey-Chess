@@ -38,11 +38,11 @@ int main(int argc, char *argv[]){
         return 1; //later on use an exception
     }
 
-    // if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
-    // {
-    //     std::cerr << "SDL_image failed to initialize" << std::endl;
-    //     return 1; //later on use an exception
-    // }
+    if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
+    {
+        std::cerr << "SDL_image failed to initialize" << std::endl;
+        return 1; //later on use an exception
+    }
     
     //Creating Window
     SDL_Window* window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
@@ -67,20 +67,20 @@ int main(int argc, char *argv[]){
     
 
 
-    // SDL_Rect rect;
-    // rect.h = rect.w = 200;
-    // rect.x = rect.y = 200;
-    // SDL_Surface* surface = IMG_Load("res/image.png");
-    // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    // SDL_RenderCopy(renderer, texture, nullptr, &rect);
-    // SDL_RenderPresent(renderer);
+    SDL_Rect rect;
+    rect.h = rect.w = 200;
+    rect.x = rect.y = 200;
+    SDL_Surface* surface = IMG_Load("../res/image.png");
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_RenderCopy(renderer, texture, nullptr, &rect);
+    SDL_RenderPresent(renderer);
 
 
     SDL_Event event;
     int run = 1;
     while(run)
     {
-        renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
+        // renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
         
         while (SDL_PollEvent(&event)) 
         {
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]){
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     window = nullptr;
-    //IMG_Quit();
+    IMG_Quit();
     SDL_Quit();
 
     return 0;
