@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "SDLevents.h"
 #include "piece.h"
 #include "basicVisuals.h"
@@ -18,6 +19,12 @@ int main(int argc, char *argv[]){
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
         std::cerr << "SDL failed to initialize" << SDL_GetError() << std::endl;
+        return 1; //later on use an exception
+    }
+
+    if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
+    {
+        std::cerr << "SDL_image failed to initialize" << std::endl;
         return 1; //later on use an exception
     }
     
@@ -60,6 +67,7 @@ int main(int argc, char *argv[]){
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     window = nullptr;
+    IMG_Quit();
     SDL_Quit();
 
     return 0;
