@@ -4,9 +4,15 @@
 #include <SDL2/SDL.h>
 #include "SDLevents.h"
 #include "piece.h"
+#include "settings.h"
 
+void main_parseCommandLineArguments(int argc, char *argv[]) {
+    // Initialize settings array.
+    // Setting *setting = new Setting("test", static_cast<bool>(false));
+    SettingsList *settings = new SettingsList();
+}
 
-int main(){
+int main(int argc, char *argv[]){
     //Initializing SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
