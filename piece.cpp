@@ -19,7 +19,7 @@ bool piece::isValidMove(int a, int b)
     return(true);
 }
 
-void piece::setCoords(int x, int y)
+void piece::move(int x, int y)
 {
     coords[0] = x;
     coords[1] = y;

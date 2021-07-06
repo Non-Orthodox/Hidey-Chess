@@ -11,6 +11,6 @@ class piece
         piece (int,int,team_t);       //constructor
         ~piece ();                    //destructor
         int* giveCoords();
-        void setCoords(int, int);
+        void move(int, int);
         bool isValidMove(int, int);  
 };

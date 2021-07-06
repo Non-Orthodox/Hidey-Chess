@@ -2,16 +2,11 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "SDLevents.h"
 #include "piece.h"
 
-int main(){
-    piece pawn(1,1,black);
-    int* x = pawn.giveCoords();
-    std::cout << x[0] << " " << x[1] << std::endl;
-    pawn.setCoords(2,3);
-    pawn.giveCoords();
-    std::cout << x[0] << " " << x[1] << std::endl;
 
+int main(){
     //Initializing SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -27,9 +22,14 @@ int main(){
         return 1;
     }
 
+    int run = 1;
+
+    while(run)
+    {
+        run = SDL_eventHandle();
+    }
+
     //Destroying Window
-    int var;
-    std::cin >> var;
 	SDL_DestroyWindow(window);
 	window = NULL;
 	
