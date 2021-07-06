@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Executable
-add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp)
+add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp basicVisuals.cpp)
 
 find_package(SDL2)
 
