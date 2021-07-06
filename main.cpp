@@ -5,8 +5,15 @@
 #include "SDLevents.h"
 #include "piece.h"
 #include "basicVisuals.h"
+#include "settings.h"
 
-int main(){
+void main_parseCommandLineArguments(int argc, char *argv[]) {
+    // Initialize settings array.
+    // Setting *setting = new Setting("test", static_cast<bool>(false));
+    SettingsList *settings = new SettingsList();
+}
+
+int main(int argc, char *argv[]){
     //Initializing SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -18,7 +25,7 @@ int main(){
     SDL_Window* window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
     if (window == nullptr) 
     {
-		std::cerr << "Error: Window could not be created | SDL_Error " << SDL_GetError() << std::endl;
+        std::cerr << "Error: Window could not be created | SDL_Error " << SDL_GetError() << std::endl;
         return 1;
     }
 
@@ -26,7 +33,7 @@ int main(){
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
     if (renderer == nullptr) 
     {
-		std::cerr << "Error: Renderer could not be created | SDL_Error " << SDL_GetError() << std::endl;
+        std::cerr << "Error: Renderer could not be created | SDL_Error " << SDL_GetError() << std::endl;
         return 1;
     }
 
@@ -50,10 +57,10 @@ int main(){
     }
 
     //Destroying and Quitting
-	SDL_DestroyWindow(window);
+    SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
-	window = nullptr;
-	SDL_Quit();
+    window = nullptr;
+    SDL_Quit();
 
     return 0;
 }
