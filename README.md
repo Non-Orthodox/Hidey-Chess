@@ -2,6 +2,21 @@
 
 Normal chess over the network with camouflaged pieces.
 
+## Dependencies
+
+```text
+    SDL2
+    SDL2_image
+```
+
+## Building
+
+```bash
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
 ## Troubleshooting
 
 ### Windows
