@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "SDLevents.h"
 #include "piece.h"
 #include "basicVisuals.h"
@@ -36,6 +37,12 @@ int main(int argc, char *argv[]){
         std::cerr << "SDL failed to initialize" << SDL_GetError() << std::endl;
         return 1; //later on use an exception
     }
+
+    if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
+    {
+        std::cerr << "SDL_image failed to initialize" << std::endl;
+        return 1; //later on use an exception
+    }
     
     //Creating Window
     SDL_Window* window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
@@ -53,34 +60,30 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-
-
-
+    //Setting team colors
     teamColor p1Color, p2Color;
     p1Color.red = p1Color.green = p1Color.blue = 255;
-    p2Color.red = p2Color.green = p2Color.blue = 50;
-    renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
+    p2Color.red = p2Color.green = p2Color.blue = 0;
     
 
 
-
-
+    SDL_Event event;
     int run = 1;
     while(run)
     {
-        run = SDL_eventHandle();
+        renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
+        
+        while (SDL_PollEvent(&event)) 
+        {
+            run = SDL_eventHandle(&event);
+        }
     }
-
-
-
-
-
-
 
     //Destroying and Quitting
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
     window = nullptr;
+    IMG_Quit();
     SDL_Quit();
 
     return 0;
