@@ -30,29 +30,24 @@ int main(){
         return 1;
     }
 
-
-
-
+    //Setting team colors
     teamColor p1Color, p2Color;
     p1Color.red = p1Color.green = p1Color.blue = 255;
-    p2Color.red = p2Color.green = p2Color.blue = 50;
-    renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
+    p2Color.red = p2Color.green = p2Color.blue = 0;
     
 
 
-
-
+    SDL_Event event;
     int run = 1;
     while(run)
     {
-        run = SDL_eventHandle();
+        renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
+        
+        while (SDL_PollEvent(&event)) 
+        {
+            run = SDL_eventHandle(&event);
+        }
     }
-
-
-
-
-
-
 
     //Destroying and Quitting
 	SDL_DestroyWindow(window);
