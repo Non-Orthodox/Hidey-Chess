@@ -22,6 +22,7 @@ private:
 public:
 	std::string name;
 	settingsType_t type = settingsType_boolean;
+	int (*callback)(Setting *) = nullptr;
 	Setting(std::string name, bool value) {
 		this->name = name;
 		this->type = settingsType_boolean;
@@ -69,19 +70,39 @@ public:
 		return *this->valueString;
 	}
 	void set(bool value) {
+		assert(type == settingsType_boolean);
 		this->valueBool = value;
+		if (callback != nullptr) {
+			callback(this);
+		}
 	}
 	void set(int value) {
+		assert(type == settingsType_integer);
 		this->valueInt = value;
+		if (callback != nullptr) {
+			callback(this);
+		}
 	}
 	void set(float value) {
+		assert(type == settingsType_float);
 		this->valueFloat = value;
+		if (callback != nullptr) {
+			callback(this);
+		}
 	}
 	void set(std::string value) {
+		assert(type == settingsType_string);
 		*this->valueString = value;
+		if (callback != nullptr) {
+			callback(this);
+		}
 	}
 	void set(const char *value) {
+		assert(type == settingsType_string);
 		*this->valueString = value;
+		if (callback != nullptr) {
+			callback(this);
+		}
 	}
 };
 
