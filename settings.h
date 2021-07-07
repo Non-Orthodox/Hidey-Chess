@@ -1,6 +1,7 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
+#include <assert.h>
 #include "array.h"
 
 enum settingsType_t {
@@ -12,7 +13,6 @@ enum settingsType_t {
 
 class Setting {
 private:
-	settingsType_t type = settingsType_boolean;
 	union {
 		bool valueBool = false;
 		int valueInt;
@@ -21,6 +21,7 @@ private:
 	};
 public:
 	std::string name;
+	settingsType_t type = settingsType_boolean;
 	Setting(std::string name, bool value) {
 		this->name = name;
 		this->type = settingsType_boolean;
@@ -51,55 +52,52 @@ public:
 	~Setting() {
 		name.clear();
 	}
-	template<typename T>
 	bool getBool() {
+		assert(type == settingsType_boolean);
 		return this->valueBool;
 	}
 	int getInt() {
+		assert(type == settingsType_integer);
 		return this->valueInt;
 	}
 	float getFloat() {
+		assert(type == settingsType_float);
 		return this->valueFloat;
 	}
 	std::string getString() {
+		assert(type == settingsType_string);
 		return *this->valueString;
 	}
-	template<typename T>
-	void set(T value) {
-		switch (type) {
-		case settingsType_boolean:
-			this->valueBool = value;
-			break;
-		case settingsType_integer:
-			this->valueInt = value;
-			break;
-		case settingsType_float:
-			this->valueFloat = value;
-			break;
-		case settingsType_string:
-			*this->valueString = value;
-			break;
-		default:
-			this->valueBool = 0;
-		}
+	void set(bool value) {
+		this->valueBool = value;
+	}
+	void set(int value) {
+		this->valueInt = value;
+	}
+	void set(float value) {
+		this->valueFloat = value;
+	}
+	void set(std::string value) {
+		*this->valueString = value;
+	}
+	void set(const char *value) {
+		*this->valueString = value;
 	}
 };
 
 class SettingsList: public Array<Setting> {
 public:
-	Setting find(std::string name) {
+	Setting *operator[](std::ptrdiff_t index) {
+		return &array[index];
+	}
+	Setting *find(std::string name) {
 		for (ptrdiff_t i = 0; i < array.size(); i++) {
 			if (array[i].name == name) {
-				return array[i];
+				return &array[i];
 			}
 		}
-		throw;
+		throw std::logic_error("SettingsList::find");
 	}
-	// template<typename T>
-	// void addSetting(std::string name, settingsType_t type, T value) {
-	// 	Setting setting = new setting(name, type, value);
-	// 	this.push(setting);
-	// }
 };
 
 #endif // SETTINGS_H

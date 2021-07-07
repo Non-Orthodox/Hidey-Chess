@@ -1,6 +1,8 @@
 #define SDL_MAIN_HANDLED
 
 #include <iostream>
+#include <string>
+#include <stdexcept>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDLevents.h"
@@ -9,28 +11,179 @@
 #include "settings.h"
 
 #define SETTINGS_LIST \
-    ENTRY("peer ip address", "localhost") \
-    ENTRY("peer network port", 2850) \
-    ENTRY("network port", 2851)
+    ENTRY("peer_ip_address", "localhost") \
+    ENTRY("peer_network_port", 2850) \
+    ENTRY("network_port", 2851)
+
+#define SETTINGS_ALIAS_LIST \
+    ENTRY('a', "peer_ip_address") \
+    ENTRY('p', "peer_network_port") \
+    ENTRY('n', "network_port")
+
+SettingsList *settings;
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
+
     // Initialize settings array.
-    SettingsList *settings = new SettingsList();
+    settings = new SettingsList();
     
     // Register settings.
-#define ENTRY(ENTRY_name, ENTRY_value) settings->push(Setting(ENTRY_name, ENTRY_value));
+#   define ENTRY(ENTRY_name, ENTRY_value) settings->push(Setting(ENTRY_name, ENTRY_value));
     SETTINGS_LIST
-#undef ENTRY
+#   undef ENTRY
+
+#   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
+    char letterOptions[] = {
+        SETTINGS_ALIAS_LIST
+    };
+#   undef ENTRY
     
-    Setting setting = (*settings).find("peer network port");
-    int peerNetworkPort = setting.getInt();
-    std::cout << "peer network port" << ": " << peerNetworkPort << std::endl;
+#   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_name,
+    std::string optionsAliases[] = {
+        SETTINGS_ALIAS_LIST
+    };
+#   undef ENTRY
+    
+    /*
+    Starting at zero might be wrong, but the program name shouldn't be
+    recognized as an option anyway. I suppose the program name could be renamed
+    so that it is recognized.
+    */
+    std::string arg;
+    std::string var;
+    std::string value;
+    int equalsIndex = 0;
+    bool tempBool = false;
+    int tempInt = 0;
+    float tempFloat = 0.0;
+    Setting *setting;
+    for (int i = 0; i < argc; i++) {
+        arg = argv[i];
+        // Check to see if argument is an option.
+        if ((arg.length() < 2) || (arg.compare(0, 1, "-") && arg.compare(0, 2, "--"))) {
+            // No options. Continue.
+            continue;
+        }
+        
+        // Process option.
+        if (!arg.compare(0, 2, "--")) {
+            if (arg.length() < 3) {
+                continue;
+            }
+            
+            arg = arg.substr(2);
+            
+            equalsIndex = arg.find_first_of('=');
+            var = arg.substr(0, equalsIndex);
+            
+            if (equalsIndex == std::string::npos) {
+                value = "";
+            }
+            else {
+                if (arg.length() <= equalsIndex + 1) {
+                    continue;
+                }
+                value = arg.substr(equalsIndex + 1);
+            }
+        }
+        else if (!arg.compare(0, 1, "-")) {
+            arg = arg.substr(1);
+            var = arg.substr(0, 1);
+            value = arg.substr(1);
+            
+            // Find setting for single character alias.
+            for (std::ptrdiff_t j = 0; j < sizeof(letterOptions)/sizeof(char); j++) {
+                if (letterOptions[j] == var[0]) {
+                    var = optionsAliases[j];
+                    break;
+                }
+            }
+        }
+        
+        // Find setting.
+        try {
+            setting = settings->find(var);
+        }
+        catch (std::logic_error& e) {
+            // It's really just fine.
+            std::cerr << "Couldn't find setting \"" << var << "\"." << std::endl;
+            continue;
+        }
+        
+        // Set setting.
+        switch (setting->type) {
+        case settingsType_boolean:
+            if (value.length() == 0) {
+                setting->set(true);
+            }
+            try {
+                // Mainly for fun.
+                tempBool = !!std::stoi(value);
+            }
+            catch (std::invalid_argument& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            catch (std::out_of_range& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            setting->set(tempBool);
+            break;
+        case settingsType_integer:
+            if (value.length() == 0) {
+                setting->set(1);
+            }
+            try {
+                tempInt = std::stoi(value);
+            }
+            catch (std::invalid_argument& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            catch (std::out_of_range& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            setting->set(tempInt);
+            break;
+        case settingsType_float:
+            if (value.length() == 0) {
+                setting->set(1.0f);
+            }
+            try {
+                tempFloat = std::stof(value);
+            }
+            catch (std::invalid_argument& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            catch (std::out_of_range& e) {
+                std::cerr << "Could not convert option \"" << var << "\"'s value \""
+                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                break;
+            }
+            setting->set(tempFloat);
+            break;
+        case settingsType_string:
+            setting->set(value);
+            break;
+        default:
+            std::cerr << "Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
+            throw std::logic_error("Can't happen.");
+        }
+    }
 }
 
 int main(int argc, char *argv[]){
-    
-    main_parseCommandLineArguments(argc, argv);
 
+    main_parseCommandLineArguments(argc, argv);
+    
     //Initializing SDL
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
