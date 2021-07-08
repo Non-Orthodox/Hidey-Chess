@@ -241,9 +241,10 @@ int main(int argc, char *argv[]){
     {
         SDL_GetWindowSize(window, &winWidth, &winHeight);
         renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
-        //SDL_RenderCopy(renderer, texture, nullptr, &rect);
-        //SDL_RenderPresent(renderer);
+        SDL_RenderPresent(renderer);
 
+
+        //Event Handler
         while (SDL_PollEvent(&event)) 
         {
             run = SDL_eventHandle(&event);
