@@ -247,7 +247,7 @@ int main(int argc, char *argv[]){
         //Event Handler
         while (SDL_PollEvent(&event)) 
         {
-            run = SDL_eventHandle(&event);
+            run = SDL_eventHandle(&event, window, renderer);
             SDL_GetWindowSize(window, &winWidth, &winHeight);
         }
     }
