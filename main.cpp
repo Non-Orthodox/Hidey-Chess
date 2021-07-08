@@ -191,7 +191,8 @@ int main(int argc, char *argv[]){
         return 1; //later on use an exception
     }
 
-    if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
+    //Initializing SDL_image
+    if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) //can add additional image file types here
     {
         std::cerr << "SDL_image failed to initialize" << std::endl;
         return 1; //later on use an exception
@@ -220,24 +221,33 @@ int main(int argc, char *argv[]){
     
 
 
+    //testing Section for images
     SDL_Rect rect;
-    rect.h = rect.w = 200;
-    rect.x = rect.y = 200;
+    rect.h = rect.w = 50;
+    rect.x = rect.y = 100;
     SDL_Surface* surface = IMG_Load("../res/image.png");
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
-    SDL_RenderPresent(renderer);
 
 
+
+
+    //Variables used for main while loop
     SDL_Event event;
     int run = 1;
+    int winWidth, winHeight; //used to store window dimensions
+
     while(run)
     {
-        // renderBoard(renderer, 100, 100, 50, p1Color, p2Color);
-        
+        SDL_GetWindowSize(window, &winWidth, &winHeight);
+        renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
+        //SDL_RenderCopy(renderer, texture, nullptr, &rect);
+        //SDL_RenderPresent(renderer);
+
         while (SDL_PollEvent(&event)) 
         {
             run = SDL_eventHandle(&event);
+            SDL_GetWindowSize(window, &winWidth, &winHeight);
         }
     }
 
