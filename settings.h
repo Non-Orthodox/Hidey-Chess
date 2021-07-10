@@ -76,7 +76,9 @@ public:
 		assert(type == settingsType_boolean);
 		this->valueBool = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(bool)");
+			}
 		}
 		return this->valueBool;
 	}
@@ -84,7 +86,9 @@ public:
 		assert(type == settingsType_integer);
 		this->valueInt = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(int)");
+			}
 		}
 		return this->valueInt;
 	}
@@ -92,7 +96,9 @@ public:
 		assert(type == settingsType_float);
 		this->valueFloat = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(float)");
+			}
 		}
 		return this->valueFloat;
 	}
@@ -100,7 +106,9 @@ public:
 		assert(type == settingsType_string);
 		*this->valueString = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(std::string)");
+			}
 		}
 		return *this->valueString;
 	}
@@ -135,6 +143,8 @@ public:
 
 
 extern SettingsList *g_settings;
+
+int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue);
 
 int settings_callback_set(Setting *setting);
 int settings_callback_print(Setting *setting);

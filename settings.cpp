@@ -10,11 +10,21 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 	bool tempBool = false;
 	int tempInt = 0;
 	float tempFloat = 0.0;
+	std::string dummy;
+	
+	if (returnValue == nullptr) {
+		returnValue = &dummy;
+	}
 	
 	switch (setting->type) {
 	case settingsType_boolean:
 		if (value.length() == 0) {
-			*returnValue = std::to_string(setting->set(true));
+			try {
+				*returnValue = std::to_string(setting->set(true));
+			}
+			catch (std::logic_error& e) {
+				error = 2;
+			}
 		}
 		try {
 			// Mainly for fun.
@@ -32,11 +42,21 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			error = 1;
 			break;
 		}
-		*returnValue = std::to_string(setting->set(tempBool));
+		try {
+			*returnValue = std::to_string(setting->set(tempBool));
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
 		break;
 	case settingsType_integer:
 		if (value.length() == 0) {
-			*returnValue = std::to_string(setting->set(1));
+			try {
+				*returnValue = std::to_string(setting->set(1));
+			}
+			catch (std::logic_error& e) {
+				error = 2;
+			}
 		}
 		try {
 			tempInt = std::stoi(value);
@@ -53,11 +73,21 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			error = 1;
 			break;
 		}
-		*returnValue = std::to_string(setting->set(tempInt));
+		try {
+			*returnValue = std::to_string(setting->set(tempInt));
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
 		break;
 	case settingsType_float:
 		if (value.length() == 0) {
-			*returnValue = std::to_string(setting->set(1.0f));
+			try {
+				*returnValue = std::to_string(setting->set(1.0f));
+			}
+			catch (std::logic_error& e) {
+				error = 2;
+			}
 		}
 		try {
 			tempFloat = std::stof(value);
@@ -74,10 +104,20 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			error = 1;
 			break;
 		}
-		*returnValue = std::to_string(setting->set(tempFloat));
+		try {
+			*returnValue = std::to_string(setting->set(tempFloat));
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
 		break;
 	case settingsType_string:
-		*returnValue = setting->set(value);
+		try {
+			*returnValue = setting->set(value);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
 		break;
 	default:
 		std::cerr << "Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
@@ -131,6 +171,12 @@ int settings_runSubcommands(std::string *line) {
 					break;
 				}
 			}
+		}
+		
+		if (parenLevel > 0) {
+			std::cerr << "Unmatched parentheses. Parenthesis level: " << parenLevel << std::endl;
+			error = 2;
+			break;
 		}
 		
 		if (closeParen_index < openParen_index) {
@@ -208,14 +254,6 @@ int settings_callback_set(Setting *setting) {
 	
 	size_t spaceIndex;
 	
-	/* Run subcommands. */
-	// This cleans out the parentheses.
-	// This may change the value of `line`.
-	error = settings_runSubcommands(&line);
-	if (error) {
-		return error;
-	}
-	
 	// Get the variable to be set.
 	spaceIndex = line.find_first_of(' ');
 	// Don't check for `npos` now because no arguments may be fine.
@@ -248,7 +286,12 @@ int settings_callback_set(Setting *setting) {
 	
 	// Set `set`'s value in order to return the `returnValue`.
 	setting->callback = nullptr;    // HACK
-	setting->set(returnValue);
+	try {
+		setting->set(returnValue);
+	}
+	catch (std::logic_error& e) {
+		error = 2;
+	}
 	setting->callback = settings_callback_set;  // HACK
 	
 	return error;
@@ -264,14 +307,6 @@ int settings_callback_print(Setting *setting) {
 	// SAVE THE STRING. IT WILL CHANGE WHEN SUBCOMMANDS ARE RUN.
 	std::string line = setting->getString();
 	size_t line_length = line.length();
-	
-	/* Run subcommands. */
-	// This cleans out the parentheses.
-	// This may change the value of `line`.
-	error = settings_runSubcommands(&line);
-	if (error) {
-		return error;
-	}
 	
 	varName = line.substr(0);
 	// Shouldn't return an error.
@@ -313,19 +348,7 @@ int settings_callback_print(Setting *setting) {
 int settings_callback_echo(Setting *setting) {
 	int error = 0;
 	
-	// SAVE THE STRING. IT WILL CHANGE WHEN SUBCOMMANDS ARE RUN.
-	std::string line = setting->getString();
-	size_t line_length = line.length();
-	
-	/* Run subcommands. */
-	// This cleans out the parentheses.
-	// This may change the value of `line`.
-	error = settings_runSubcommands(&line);
-	if (error) {
-		return error;
-	}
-	
-	std::cout << "\"" << line << "\"" << std::endl;
+	std::cout << "\"" << setting->getString() << "\"" << std::endl;
 	
 	return error;
 }

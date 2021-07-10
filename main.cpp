@@ -128,72 +128,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
         }
         
         // Set setting.
-        switch (setting->type) {
-        case settingsType_boolean:
-            if (value.length() == 0) {
-                setting->set(true);
-            }
-            try {
-                // Mainly for fun.
-                tempBool = !!std::stoi(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempBool);
-            break;
-        case settingsType_integer:
-            if (value.length() == 0) {
-                setting->set(1);
-            }
-            try {
-                tempInt = std::stoi(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempInt);
-            break;
-        case settingsType_float:
-            if (value.length() == 0) {
-                setting->set(1.0f);
-            }
-            try {
-                tempFloat = std::stof(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempFloat);
-            break;
-        case settingsType_string:
-            setting->set(value);
-            break;
-        default:
-            std::cerr << "Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
-            throw std::logic_error("Can't happen.");
-        }
+        settings_setFromString(setting, value, NULL);
     }
 }
 
@@ -287,8 +222,8 @@ int main(int argc, char *argv[]){
     }
 
     //Destroying and Quitting
-    SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     window = nullptr;
     IMG_Quit();
     SDL_Quit();
