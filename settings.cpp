@@ -3,7 +3,6 @@
 #include <string>
 #include <iostream>
 
-// * <value>
 int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue) {
 	int error = 0;
 	
@@ -232,7 +231,10 @@ int settings_runSubcommands(std::string *line) {
 	return error;
 }
 
-// Usage:   set <var0> <value>
+// '*' in descriptions below is the Kleene star.
+// '(' and ')' are used with '*' to specify which part of the line is repeated.
+
+// Usage:   set <var0> <value0>*
 // Type:    std::string
 /* Errors:
 	0   OK
@@ -297,6 +299,8 @@ int settings_callback_set(Setting *setting) {
 	return error;
 }
 
+// Usage:   print <var0>
+// Type:    std::string
 int settings_callback_print(Setting *setting) {
 	int error = 0;
 	
@@ -345,6 +349,8 @@ int settings_callback_print(Setting *setting) {
 	return error;
 }
 
+// Usage:   echo <value0>*
+// Type:    std::string
 int settings_callback_echo(Setting *setting) {
 	int error = 0;
 	
@@ -353,6 +359,8 @@ int settings_callback_echo(Setting *setting) {
 	return error;
 }
 
+// Usage:    ('('<var0> <value0>*')')*
+// Type:    std::string
 int settings_callback_chain(Setting *setting) {
 	int error = 0;
 	
