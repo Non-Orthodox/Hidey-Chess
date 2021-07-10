@@ -1,10 +1,9 @@
-#include <SDL2/SDL.h>
+#ifndef BASIC_VISUALS_H
+#define BASIC_VISUALS_H
 
-struct teamColor 
-{
-    int red;
-    int green;
-    int blue;
-};
+#include <SDL2/SDL.h>
+#include "types.h"
 
 void renderBoard(SDL_Renderer*, int, int, int, teamColor, teamColor);
+
+#endif

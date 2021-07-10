@@ -1,6 +1,7 @@
 #include "SDLevents.h"
 #include <SDL2/SDL.h>
 #include <iostream>
+#include "types.h"
 
 int SDL_eventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* renderer)
 {
@@ -72,3 +73,4 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
         break;
     }
 }
+

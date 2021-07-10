@@ -1,5 +1,6 @@
 #include "basicVisuals.h"
 #include <SDL2/SDL.h>
+#include "types.h"
 
 //x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
 void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, teamColor p1Col, teamColor p2Col)

@@ -9,6 +9,7 @@
 #include "piece.h"
 #include "basicVisuals.h"
 #include "settings.h"
+#include "types.h"
 
 #define SETTINGS_LIST \
     ENTRY("peer_ip_address", "localhost") \
@@ -216,18 +217,22 @@ int main(int argc, char *argv[]){
 
     //Setting team colors
     teamColor p1Color, p2Color;
-    p1Color.red = p1Color.green = p1Color.blue = 255;
-    p2Color.red = p2Color.green = p2Color.blue = 0;
+    p1Color.red = 0;
+    p1Color.green = 0;
+    p1Color.blue = 0;
+    p2Color.red = 255;
+    p2Color.green = 255;
+    p2Color.blue = 255;
     
 
 
     //testing Section for images
-    SDL_Rect rect;
-    rect.h = rect.w = 50;
-    rect.x = rect.y = 100;
-    SDL_Surface* surface = IMG_Load("../res/image.png");
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_RenderCopy(renderer, texture, nullptr, &rect);
+    // SDL_Rect rect;
+    // rect.h = rect.w = 50;
+    // rect.x = rect.y = 100;
+    // SDL_Surface* surface = IMG_Load("../res/image.png");
+    // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+    // SDL_RenderCopy(renderer, texture, nullptr, &rect);
 
 
 
@@ -236,6 +241,7 @@ int main(int argc, char *argv[]){
     SDL_Event event;
     int run = 1;
     int winWidth, winHeight; //used to store window dimensions
+    gameState GAME_STATE = MAIN_MENU;
 
     while(run)
     {
@@ -243,12 +249,24 @@ int main(int argc, char *argv[]){
         renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
         SDL_RenderPresent(renderer);
 
+        switch(GAME_STATE)
+        {
+            case MAIN_MENU:
+                break;
+            case USER_TURN:
+                break;
+            case ENEMY_TURN:
+                break;
+            case SINGLEPLAYER:
+                break;
+            default:
+                break;
+        }
 
         //Event Handler
         while (SDL_PollEvent(&event)) 
         {
             run = SDL_eventHandle(&event, window, renderer);
-            SDL_GetWindowSize(window, &winWidth, &winHeight);
         }
     }
 
