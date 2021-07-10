@@ -24,15 +24,15 @@
 #define SETTINGS_CALLBACKS_LIST
     // ENTRY("network_mtu", setting_callback_setMtu)
 
-SettingsList *settings;
+SettingsList *g_settings;
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
     // Initialize settings array.
-    settings = new SettingsList();
+    g_settings = new SettingsList();
     
     // Register settings.
-#   define ENTRY(ENTRY_name, ENTRY_value) settings->push(Setting(ENTRY_name, ENTRY_value));
+#   define ENTRY(ENTRY_name, ENTRY_value) g_settings->push(Setting(ENTRY_name, ENTRY_value));
     SETTINGS_LIST
 #   undef ENTRY
 
@@ -50,7 +50,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 #   undef ENTRY
     
     // Bind callbacks
-#   define ENTRY(ENTRY_name, ENTRY_callback) settings->find(ENTRY_name)->callback = ENTRY_callback;
+#   define ENTRY(ENTRY_name, ENTRY_callback) g_settings->find(ENTRY_name)->callback = ENTRY_callback;
     SETTINGS_CALLBACKS_LIST
 #   undef ENTRY
     
@@ -112,7 +112,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
         
         // Find setting.
         try {
-            setting = settings->find(var);
+            setting = g_settings->find(var);
         }
         catch (std::logic_error& e) {
             // It's really just fine.

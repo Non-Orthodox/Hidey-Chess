@@ -121,4 +121,6 @@ public:
 	}
 };
 
+extern SettingsList *g_settings;
+
 #endif // SETTINGS_H
