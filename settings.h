@@ -138,5 +138,7 @@ extern SettingsList *g_settings;
 
 int settings_callback_set(Setting *setting);
 int settings_callback_print(Setting *setting);
+int settings_callback_echo(Setting *setting);
+int settings_callback_chain(Setting *setting);
 
 #endif // SETTINGS_H

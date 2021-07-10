@@ -167,7 +167,7 @@ int settings_runSubcommands(std::string *line) {
 			var = g_settings->find(varName);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "Could not find variable \"" << varName << "\"." << std::endl;
+			std::cerr << "(settings_runSubcommands) Could not find variable \"" << varName << "\"." << std::endl;
 			error = 1;
 			break;
 		}
@@ -246,6 +246,11 @@ int settings_callback_set(Setting *setting) {
 		return error;
 	}
 	
+	// Set `set`'s value in order to return the `returnValue`.
+	setting->callback = nullptr;    // HACK
+	setting->set(returnValue);
+	setting->callback = settings_callback_set;  // HACK
+	
 	return error;
 }
 
@@ -301,6 +306,44 @@ int settings_callback_print(Setting *setting) {
 	}
 	
 	std::cout << std::endl;
+	
+	return error;
+}
+
+int settings_callback_echo(Setting *setting) {
+	int error = 0;
+	
+	// SAVE THE STRING. IT WILL CHANGE WHEN SUBCOMMANDS ARE RUN.
+	std::string line = setting->getString();
+	size_t line_length = line.length();
+	
+	/* Run subcommands. */
+	// This cleans out the parentheses.
+	// This may change the value of `line`.
+	error = settings_runSubcommands(&line);
+	if (error) {
+		return error;
+	}
+	
+	std::cout << "\"" << line << "\"" << std::endl;
+	
+	return error;
+}
+
+int settings_callback_chain(Setting *setting) {
+	int error = 0;
+	
+	// SAVE THE STRING. IT WILL CHANGE WHEN SUBCOMMANDS ARE RUN.
+	std::string line = setting->getString();
+	size_t line_length = line.length();
+	
+	/* Run subcommands. */
+	// This cleans out the parentheses.
+	// This may change the value of `line`.
+	error = settings_runSubcommands(&line);
+	if (error) {
+		return error;
+	}
 	
 	return error;
 }

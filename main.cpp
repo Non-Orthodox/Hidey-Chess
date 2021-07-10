@@ -16,7 +16,9 @@
     ENTRY("peer_network_port", 2850) \
     ENTRY("network_port", 2851) \
     ENTRY("set", "") \
-    ENTRY("print", "")
+    ENTRY("print", "") \
+    ENTRY("echo", "") \
+    ENTRY("", "")
 
 #define SETTINGS_ALIAS_LIST \
     ENTRY('a', "peer_ip_address") \
@@ -25,7 +27,9 @@
 
 #define SETTINGS_CALLBACKS_LIST \
     ENTRY("set", settings_callback_set) \
-    ENTRY("print", settings_callback_print)
+    ENTRY("print", settings_callback_print) \
+    ENTRY("echo", settings_callback_echo) \
+    ENTRY("", settings_callback_chain)
 
 SettingsList *g_settings;
 
