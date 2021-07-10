@@ -13,5 +13,6 @@
 | Long name | arguments | Description |
 |-|:-|-|
 |  | (command)* | sic. Execute arguments as commands. |
+| echo | value | Print the string `value`. |
 | print | var | Print the contents of setting `var`. |
-| set | var value | Set the setting `var` to the string `value`. |
+| set | var value | Set the setting `var` to the literal `value`. |
