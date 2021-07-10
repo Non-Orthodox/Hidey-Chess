@@ -1,15 +1,15 @@
 #include "basicVisuals.h"
 #include <SDL2/SDL.h>
 
-//x and y are origin coords (top left) of the board. p1Col and p2Col are the two different tile colors
+//x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
 void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, teamColor p1Col, teamColor p2Col)
 {
     int error;
     SDL_Rect rect;
     bool p1Tile = false;
     rect.h = rect.w = tileSize;
-    rect.x = x;
-    rect.y = y;
+    rect.x = x - 4*tileSize;
+    rect.y = y - 4*tileSize;
 
     for(int i = 0; i < 8; i++) 
     {
@@ -31,7 +31,7 @@ void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, teamColor p
             rect.x += tileSize;
         }
         //reset first coordinate
-        rect.x = x;
+        rect.x = x - 4*tileSize;
 
         //update the other coordinate
         rect.y += tileSize;
@@ -39,6 +39,4 @@ void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, teamColor p
         //boolean flip
         p1Tile = !p1Tile;
     }
-    //Present what is rendered
-    SDL_RenderPresent(renderer);
 }
