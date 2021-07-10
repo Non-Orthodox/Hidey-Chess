@@ -2,7 +2,10 @@
 #define SETTINGS_H
 
 #include <assert.h>
-#include "array.h"
+#include <vector>
+#include <string>
+#include <stdexcept>
+// #include "array.h"
 
 enum settingsType_t {
 	settingsType_boolean,
@@ -69,33 +72,37 @@ public:
 		assert(type == settingsType_string);
 		return *this->valueString;
 	}
-	void set(bool value) {
+	bool set(bool value) {
 		assert(type == settingsType_boolean);
 		this->valueBool = value;
 		if (callback != nullptr) {
 			callback(this);
 		}
+		return this->valueBool;
 	}
-	void set(int value) {
+	int set(int value) {
 		assert(type == settingsType_integer);
 		this->valueInt = value;
 		if (callback != nullptr) {
 			callback(this);
 		}
+		return this->valueInt;
 	}
-	void set(float value) {
+	float set(float value) {
 		assert(type == settingsType_float);
 		this->valueFloat = value;
 		if (callback != nullptr) {
 			callback(this);
 		}
+		return this->valueFloat;
 	}
-	void set(std::string value) {
+	std::string set(std::string value) {
 		assert(type == settingsType_string);
 		*this->valueString = value;
 		if (callback != nullptr) {
 			callback(this);
 		}
+		return *this->valueString;
 	}
 	void set(const char *value) {
 		assert(type == settingsType_string);
@@ -106,13 +113,18 @@ public:
 	}
 };
 
-class SettingsList: public Array<Setting> {
+class SettingsList {
+private:
+	std::vector<Setting> array;
 public:
+	void push(Setting value) {
+		array.push_back(value);
+	}
 	Setting *operator[](std::ptrdiff_t index) {
 		return &array[index];
 	}
 	Setting *find(std::string name) {
-		for (ptrdiff_t i = 0; i < array.size(); i++) {
+		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
 			if (array[i].name == name) {
 				return &array[i];
 			}
@@ -121,6 +133,10 @@ public:
 	}
 };
 
+
 extern SettingsList *g_settings;
+
+int settings_callback_set(Setting *setting);
+int settings_callback_print(Setting *setting);
 
 #endif // SETTINGS_H

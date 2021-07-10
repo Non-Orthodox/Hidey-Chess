@@ -14,15 +14,18 @@
 #define SETTINGS_LIST \
     ENTRY("peer_ip_address", "localhost") \
     ENTRY("peer_network_port", 2850) \
-    ENTRY("network_port", 2851)
+    ENTRY("network_port", 2851) \
+    ENTRY("set", "") \
+    ENTRY("print", "")
 
 #define SETTINGS_ALIAS_LIST \
     ENTRY('a', "peer_ip_address") \
     ENTRY('p', "peer_network_port") \
-    ENTRY('n', "network_port")
+    ENTRY('n', "network_port") \
 
-#define SETTINGS_CALLBACKS_LIST
-    // ENTRY("network_mtu", setting_callback_setMtu)
+#define SETTINGS_CALLBACKS_LIST \
+    ENTRY("set", settings_callback_set) \
+    ENTRY("print", settings_callback_print)
 
 SettingsList *g_settings;
 
@@ -116,7 +119,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
         }
         catch (std::logic_error& e) {
             // It's really just fine.
-            std::cerr << "Couldn't find setting \"" << var << "\"." << std::endl;
+            std::cerr << "(main_parseCommandLineArguments) Couldn't find setting \"" << var << "\"." << std::endl;
             continue;
         }
         
