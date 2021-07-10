@@ -1,3 +1,6 @@
+#ifndef PIECE_H
+#define PIECE_H
+
 typedef enum {black, white} team_t;
 
 class piece
@@ -14,3 +17,5 @@ class piece
         void move(int, int);
         bool isValidMove(int, int);  
 };
+
+#endif
