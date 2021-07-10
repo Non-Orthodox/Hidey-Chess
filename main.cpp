@@ -20,6 +20,9 @@
     ENTRY('p', "peer_network_port") \
     ENTRY('n', "network_port")
 
+#define SETTINGS_CALLBACKS_LIST
+    // ENTRY("network_mtu", setting_callback_setMtu)
+
 SettingsList *settings;
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
@@ -32,6 +35,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
     SETTINGS_LIST
 #   undef ENTRY
 
+    // Define option aliases.
 #   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
     char letterOptions[] = {
         SETTINGS_ALIAS_LIST
@@ -42,6 +46,11 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
     std::string optionsAliases[] = {
         SETTINGS_ALIAS_LIST
     };
+#   undef ENTRY
+    
+    // Bind callbacks
+#   define ENTRY(ENTRY_name, ENTRY_callback) settings->find(ENTRY_name)->callback = ENTRY_callback;
+    SETTINGS_CALLBACKS_LIST
 #   undef ENTRY
     
     /*
@@ -141,12 +150,12 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
             }
             catch (std::invalid_argument& e) {
                 std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
                 break;
             }
             catch (std::out_of_range& e) {
                 std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
                 break;
             }
             setting->set(tempInt);
@@ -160,12 +169,12 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
             }
             catch (std::invalid_argument& e) {
                 std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
                 break;
             }
             catch (std::out_of_range& e) {
                 std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
                 break;
             }
             setting->set(tempFloat);
