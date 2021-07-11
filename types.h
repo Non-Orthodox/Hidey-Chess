@@ -1,11 +1,13 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-struct teamColor 
+#include <cstdint>
+
+struct color_t
 {
-    int red;
-    int green;
-    int blue;
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
 };
 
 enum pieceType {none=0,pawn,rook,knight,bishop,queen,king};

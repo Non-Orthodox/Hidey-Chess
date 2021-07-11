@@ -172,7 +172,7 @@ int main(int argc, char *argv[]){
     }
 
     //Setting team colors
-    teamColor p1Color, p2Color;
+    color_t p1Color, p2Color;
     p1Color.red = 0;
     p1Color.green = 0;
     p1Color.blue = 0;
