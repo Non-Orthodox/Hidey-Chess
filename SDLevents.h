@@ -10,8 +10,6 @@ void windowEventHandle(SDL_Event*,SDL_Window*,SDL_Renderer*);
 //int MainMenuEventHandle();
 //int UserTurnEventHandle();
 //int EnemyTurnEventHandle();
-
-
-//int SP_EventHandle();
+int SP_EventHandle(SDL_Event*,SDL_Window*,SDL_Renderer*,gameState*);
 
 #endif

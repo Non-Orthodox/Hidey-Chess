@@ -74,3 +74,29 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
     }
 }
 
+int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE)
+{
+    switch(event->type)
+    {
+    case SDL_QUIT:
+        return 0;
+
+    //MOUSE ACTIONS    
+    case SDL_MOUSEMOTION:
+        break;
+    case SDL_MOUSEBUTTONDOWN:
+        break;
+    case SDL_MOUSEBUTTONUP:
+        break;
+    
+    //WINDOW ACTIONS
+    case SDL_WINDOWEVENT:
+        break;
+
+    //PRINT NOT YET ADDED ACTION TYPES
+    default:
+        std::cout << event->type << " not accounted for in SP handler" << std::endl;
+        break;
+    }
+    return 1;
+}

@@ -5,5 +5,6 @@
 #include "types.h"
 
 void renderBoard(SDL_Renderer*, int, int, int, teamColor, teamColor);
+//void renderPieces();
 
 #endif

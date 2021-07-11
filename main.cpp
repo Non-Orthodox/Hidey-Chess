@@ -10,6 +10,7 @@
 #include "basicVisuals.h"
 #include "settings.h"
 #include "types.h"
+#include "board.h"
 
 #define SETTINGS_LIST \
     ENTRY("peer_ip_address", "localhost") \
@@ -251,31 +252,54 @@ int main(int argc, char *argv[]){
     int run = 1;
     int winWidth, winHeight; //used to store window dimensions
     gameState GAME_STATE = MAIN_MENU;
+    pieces board[8][8];
+
+    //temporary
+    GAME_STATE = SINGLEPLAYER;
 
     while(run)
     {
+
+        //Block of temporary lines used for testing
         SDL_GetWindowSize(window, &winWidth, &winHeight);
         renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
         SDL_RenderPresent(renderer);
+
+
 
         switch(GAME_STATE)
         {
             case MAIN_MENU:
                 break;
+
             case USER_TURN:
                 break;
+
             case ENEMY_TURN:
                 break;
+
             case SINGLEPLAYER:
+                std::cout << "Now in Singleplayer" << std::endl;
+                standardBoardInit(board);
+                printStandardBoard(board);
+                //renderBoard();
+                //renderPieces();
+                while(GAME_STATE == SINGLEPLAYER)
+                {
+                    while (SDL_PollEvent(&event)) 
+                    {
+                        run = SP_EventHandle(&event, window, renderer,&GAME_STATE);
+                    }
+
+                    if(run == 0)
+                    {
+                        break;
+                    }
+                }
                 break;
+
             default:
                 break;
-        }
-
-        //Event Handler
-        while (SDL_PollEvent(&event)) 
-        {
-            run = SDL_eventHandle(&event, window, renderer);
         }
     }
 

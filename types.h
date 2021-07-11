@@ -17,6 +17,6 @@ struct pieces
     bool highL;
 };
 
-enum gameState {MAIN_MENU, USER_TURN, ENEMY_TURN, SINGLEPLAYER};
+enum gameState {NONE, MAIN_MENU, USER_TURN, ENEMY_TURN, SINGLEPLAYER};
 
 #endif
