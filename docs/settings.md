@@ -13,6 +13,8 @@
 | Long name | arguments | Description |
 |-|:-|-|
 |  | (command)* | sic. Execute arguments as commands. |
+| != | var0/value0 var1/value1 | Test whether both vars/values are not equal. Mixing vars and values is allowed. |
+| == | var0/value0 var1/value1 | Test whether both vars/values are equal. Mixing vars and values is allowed. |
 | echo | value | Print the string `value`. |
 | print | var | Print the contents of setting `var`. |
 | set | var value | Set the setting `var` to the literal `value`. |

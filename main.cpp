@@ -18,6 +18,8 @@
     ENTRY("set", "") \
     ENTRY("print", "") \
     ENTRY("echo", "") \
+    ENTRY("==", "") \
+    ENTRY("!=", "") \
     ENTRY("", "")
 
 #define SETTINGS_ALIAS_LIST \
@@ -29,6 +31,8 @@
     ENTRY("set", settings_callback_set) \
     ENTRY("print", settings_callback_print) \
     ENTRY("echo", settings_callback_echo) \
+    ENTRY("==", settings_callback_equal) \
+    ENTRY("!=", settings_callback_notEqual) \
     ENTRY("", settings_callback_chain)
 
 SettingsList *g_settings;

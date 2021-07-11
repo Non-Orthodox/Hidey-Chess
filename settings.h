@@ -11,7 +11,8 @@ enum settingsType_t {
 	settingsType_boolean,
 	settingsType_integer,
 	settingsType_float,
-	settingsType_string
+	settingsType_string,
+	settingsType_any
 };
 
 class Setting {
@@ -112,12 +113,15 @@ public:
 		}
 		return *this->valueString;
 	}
-	void set(const char *value) {
+	std::string set(const char *value) {
 		assert(type == settingsType_string);
 		*this->valueString = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(std::string)");
+			}
 		}
+		return *this->valueString;
 	}
 };
 
@@ -139,6 +143,14 @@ public:
 		}
 		throw std::logic_error("SettingsList::find");
 	}
+	bool exists(std::string name) {
+		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
+			if (array[i].name == name) {
+				return true;
+			}
+		}
+		return false;
+	}
 };
 
 
@@ -150,5 +162,7 @@ int settings_callback_set(Setting *setting);
 int settings_callback_print(Setting *setting);
 int settings_callback_echo(Setting *setting);
 int settings_callback_chain(Setting *setting);
+int settings_callback_equal(Setting *setting);
+int settings_callback_notEqual(Setting *setting);
 
 #endif // SETTINGS_H

@@ -2,6 +2,7 @@
 #include "settings.h"
 #include <string>
 #include <iostream>
+#include <regex>
 
 int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue) {
 	int error = 0;
@@ -231,6 +232,86 @@ int settings_runSubcommands(std::string *line) {
 	return error;
 }
 
+/* settings_autoGet
+Find the variable. If there is no variable, attempt to convert the string to the
+desired type. If there is no desired type, determine the most likely type and
+convert to that type.
+*/
+int settings_autoGet(std::string value, Setting *result) {
+	int error = 0;
+	
+	int tempInt;
+	float tempFloat;
+	
+	/* Convert to the desired type. */
+	
+	if (result->type != settingsType_any) {
+		error = settings_setFromString(result, value, NULL);
+		return error;
+	}
+	
+	try {
+		tempInt = std::stoi(value);
+		result->type = settingsType_integer;
+		try {
+			result->set(tempInt);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
+		
+		return error;
+	}
+	catch (std::invalid_argument& e) {}
+	catch (std::out_of_range& e) {}
+	
+	try {
+		tempFloat = std::stof(value);
+		result->type = settingsType_float;
+		try {
+			result->set(tempFloat);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
+		
+		return error;
+	}
+	catch (std::invalid_argument& e) {}
+	catch (std::out_of_range& e) {}
+	
+	if (value == "false") {
+		result->type = settingsType_boolean;
+		try {
+			result->set(false);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
+		return error;
+	}
+	else if (value == "true") {
+		result->type = settingsType_boolean;
+		try {
+			result->set(true);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
+		return error;
+	}
+	
+	result->type = settingsType_string;
+		try {
+			result->set(value);
+		}
+		catch (std::logic_error& e) {
+			error = 2;
+		}
+	
+	return error;
+}
+
 // '*' in descriptions below is the Kleene star.
 // '(' and ')' are used with '*' to specify which part of the line is repeated.
 
@@ -374,6 +455,284 @@ int settings_callback_chain(Setting *setting) {
 	error = settings_runSubcommands(&line);
 	if (error) {
 		return error;
+	}
+	
+	return error;
+}
+
+int settings_callback_equal(Setting *setting) {
+	int error = 0;
+	
+	int (*callback)(Setting *) = nullptr;
+
+	std::string line = setting->getString();
+	size_t line_length = line.length();
+	
+	size_t space0, space1;
+	
+	bool clean0 = false, clean1 = false;
+	
+	std::string value0_name;
+	Setting *value0;
+	
+	std::string value1_name;
+	Setting *value1;
+	
+	/* Get arguments. */
+	space0 = line.find_first_of(' ');
+	space1 = line.find_first_of(' ', space0);
+	
+	if (space0 == std::string::npos) {
+		std::cerr << "(settings_callback_equal) Function `equal` requires two arguments. Only one was provided." << std::endl;
+		error = 2;
+		return error;
+	}
+	
+	value0_name = line.substr(0, space0);
+	
+	value1_name = line.substr(space0 + 1, space1 - (space0 + 1));
+
+	/* Find the variables if they exist. */
+	
+	if (g_settings->exists(value0_name)) {
+		try {
+			value0 = g_settings->find(value0_name);
+		}
+		catch (std::logic_error& e) {
+			std::cerr << "(settings_callback_set) Could not find variable \"" << value0_name << "\"." << std::endl;
+			error = 1;
+			return error;
+		}
+	}
+	else {
+		clean0 = true;
+		value0 = new Setting("", 0);
+	}
+	
+	if (g_settings->exists(value1_name)) {
+		try {
+			value1 = g_settings->find(value1_name);
+		}
+		catch (std::logic_error& e) {
+			std::cerr << "(settings_callback_set) Could not find variable \"" << value1_name << "\"." << std::endl;
+			error = 1;
+			return error;
+		}
+	}
+	else {
+		clean1 = true;
+		value1 = new Setting("", 0);
+		
+		/* Set the values if they couldn't be found. */
+		
+		error = settings_autoGet(value0_name, value1);
+		if (error) {
+			goto cleanup_l;
+		}
+		
+		error = settings_autoGet(value1_name, value1);
+		if (error) {
+			goto cleanup_l;
+		}
+	}
+	
+	/* Do the comparison. */
+	
+	callback = setting->callback;
+	setting->callback = nullptr;
+	
+	if (value0->type == value1->type) {
+		switch (value0->type) {
+		case settingsType_boolean:
+			if (value0->getBool() == value1->getBool()) {
+				setting->set("1");
+			}
+			else {
+				setting->set("0");
+			}
+		case settingsType_integer:
+			if (value0->getInt() == value1->getInt()) {
+				setting->set("1");
+			}
+			else {
+				setting->set("0");
+			}
+			break;
+		case settingsType_float:
+			if (value0->getFloat() == value1->getFloat()) {
+				setting->set("1");
+			}
+			else {
+				setting->set("0");
+			}
+			break;
+		case settingsType_string:
+			if (value0->getString() == value1->getString()) {
+				setting->set("1");
+			}
+			else {
+				setting->set("0");
+			}
+			break;
+		default:
+			std::cerr << "Invalid type " << value0->type << " for settings \"" << value0->name << "\" and \"" << value1->name << "\"." << std::endl;
+			setting->set("0");
+			error = 2;
+			goto cleanup_l;
+		}
+	}
+	else {
+		setting->set("0");
+	}
+	
+	setting->callback = callback;
+	
+	cleanup_l:
+	
+	if (clean0) {
+		delete value0;
+	}
+	if (clean1) {
+		delete value1;
+	}
+	
+	return error;
+}
+
+int settings_callback_notEqual(Setting *setting) {
+	int error = 0;
+	
+	int (*callback)(Setting *) = nullptr;
+
+	std::string line = setting->getString();
+	size_t line_length = line.length();
+	
+	size_t space0, space1;
+	
+	bool clean0 = false, clean1 = false;
+	
+	std::string value0_name;
+	Setting *value0;
+	
+	std::string value1_name;
+	Setting *value1;
+	
+	/* Get arguments. */
+	space0 = line.find_first_of(' ');
+	space1 = line.find_first_of(' ', space0);
+	
+	if (space0 == std::string::npos) {
+		std::cerr << "(settings_callback_equal) Function `equal` requires two arguments. Only one was provided." << std::endl;
+		error = 2;
+		return error;
+	}
+	
+	value0_name = line.substr(0, space0);
+	
+	value1_name = line.substr(space0 + 1, space1 - (space0 + 1));
+
+	/* Find the variables if they exist. */
+	
+	if (g_settings->exists(value0_name)) {
+		try {
+			value0 = g_settings->find(value0_name);
+		}
+		catch (std::logic_error& e) {
+			std::cerr << "(settings_callback_set) Could not find variable \"" << value0_name << "\"." << std::endl;
+			error = 1;
+			return error;
+		}
+	}
+	else {
+		clean0 = true;
+		value0 = new Setting("", 0);
+	}
+	
+	if (g_settings->exists(value1_name)) {
+		try {
+			value1 = g_settings->find(value1_name);
+		}
+		catch (std::logic_error& e) {
+			std::cerr << "(settings_callback_set) Could not find variable \"" << value1_name << "\"." << std::endl;
+			error = 1;
+			return error;
+		}
+	}
+	else {
+		clean1 = true;
+		value1 = new Setting("", 0);
+		
+		/* Set the values if they couldn't be found. */
+		
+		error = settings_autoGet(value0_name, value1);
+		if (error) {
+			goto cleanup_l;
+		}
+		
+		error = settings_autoGet(value1_name, value1);
+		if (error) {
+			goto cleanup_l;
+		}
+	}
+	
+	/* Do the comparison. */
+	
+	callback = setting->callback;
+	setting->callback = nullptr;
+	
+	if (value0->type == value1->type) {
+		switch (value0->type) {
+		case settingsType_boolean:
+			if (value0->getBool() == value1->getBool()) {
+				setting->set("0");
+			}
+			else {
+				setting->set("1");
+			}
+		case settingsType_integer:
+			if (value0->getInt() == value1->getInt()) {
+				setting->set("0");
+			}
+			else {
+				setting->set("1");
+			}
+			break;
+		case settingsType_float:
+			if (value0->getFloat() == value1->getFloat()) {
+				setting->set("0");
+			}
+			else {
+				setting->set("1");
+			}
+			break;
+		case settingsType_string:
+			if (value0->getString() == value1->getString()) {
+				setting->set("0");
+			}
+			else {
+				setting->set("1");
+			}
+			break;
+		default:
+			std::cerr << "Invalid type " << value0->type << " for settings \"" << value0->name << "\" and \"" << value1->name << "\"." << std::endl;
+			setting->set("1");
+			error = 2;
+			goto cleanup_l;
+		}
+	}
+	else {
+		setting->set("1");
+	}
+	
+	setting->callback = callback;
+	
+	cleanup_l:
+	
+	if (clean0) {
+		delete value0;
+	}
+	if (clean1) {
+		delete value1;
 	}
 	
 	return error;
