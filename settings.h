@@ -2,13 +2,17 @@
 #define SETTINGS_H
 
 #include <assert.h>
-#include "array.h"
+#include <vector>
+#include <string>
+#include <stdexcept>
+// #include "array.h"
 
 enum settingsType_t {
 	settingsType_boolean,
 	settingsType_integer,
 	settingsType_float,
-	settingsType_string
+	settingsType_string,
+	settingsType_any
 };
 
 class Setting {
@@ -69,56 +73,96 @@ public:
 		assert(type == settingsType_string);
 		return *this->valueString;
 	}
-	void set(bool value) {
+	bool set(bool value) {
 		assert(type == settingsType_boolean);
 		this->valueBool = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(bool)");
+			}
 		}
+		return this->valueBool;
 	}
-	void set(int value) {
+	int set(int value) {
 		assert(type == settingsType_integer);
 		this->valueInt = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(int)");
+			}
 		}
+		return this->valueInt;
 	}
-	void set(float value) {
+	float set(float value) {
 		assert(type == settingsType_float);
 		this->valueFloat = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(float)");
+			}
 		}
+		return this->valueFloat;
 	}
-	void set(std::string value) {
+	std::string set(std::string value) {
 		assert(type == settingsType_string);
 		*this->valueString = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(std::string)");
+			}
 		}
+		return *this->valueString;
 	}
-	void set(const char *value) {
+	std::string set(const char *value) {
 		assert(type == settingsType_string);
 		*this->valueString = value;
 		if (callback != nullptr) {
-			callback(this);
+			if (callback(this)) {
+				throw std::logic_error("Setting::set(std::string)");
+			}
 		}
+		return *this->valueString;
 	}
 };
 
-class SettingsList: public Array<Setting> {
+class SettingsList {
+private:
+	std::vector<Setting> array;
 public:
+	void push(Setting value) {
+		array.push_back(value);
+	}
 	Setting *operator[](std::ptrdiff_t index) {
 		return &array[index];
 	}
 	Setting *find(std::string name) {
-		for (ptrdiff_t i = 0; i < array.size(); i++) {
+		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
 			if (array[i].name == name) {
 				return &array[i];
 			}
 		}
 		throw std::logic_error("SettingsList::find");
 	}
+	bool exists(std::string name) {
+		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
+			if (array[i].name == name) {
+				return true;
+			}
+		}
+		return false;
+	}
 };
+
+
+extern SettingsList *g_settings;
+
+int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue);
+
+int settings_callback_set(Setting *setting);
+int settings_callback_print(Setting *setting);
+int settings_callback_echo(Setting *setting);
+int settings_callback_chain(Setting *setting);
+int settings_callback_equal(Setting *setting);
+int settings_callback_notEqual(Setting *setting);
 
 #endif // SETTINGS_H

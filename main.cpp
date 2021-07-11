@@ -15,25 +15,36 @@
 #define SETTINGS_LIST \
     ENTRY("peer_ip_address", "localhost") \
     ENTRY("peer_network_port", 2850) \
-    ENTRY("network_port", 2851)
+    ENTRY("network_port", 2851) \
+    ENTRY("set", "") \
+    ENTRY("print", "") \
+    ENTRY("echo", "") \
+    ENTRY("==", "") \
+    ENTRY("!=", "") \
+    ENTRY("", "")
 
 #define SETTINGS_ALIAS_LIST \
     ENTRY('a', "peer_ip_address") \
     ENTRY('p', "peer_network_port") \
-    ENTRY('n', "network_port")
+    ENTRY('n', "network_port") \
 
-#define SETTINGS_CALLBACKS_LIST
-    // ENTRY("network_mtu", setting_callback_setMtu)
+#define SETTINGS_CALLBACKS_LIST \
+    ENTRY("set", settings_callback_set) \
+    ENTRY("print", settings_callback_print) \
+    ENTRY("echo", settings_callback_echo) \
+    ENTRY("==", settings_callback_equal) \
+    ENTRY("!=", settings_callback_notEqual) \
+    ENTRY("", settings_callback_chain)
 
-SettingsList *settings;
+SettingsList *g_settings;
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
     // Initialize settings array.
-    settings = new SettingsList();
+    g_settings = new SettingsList();
     
     // Register settings.
-#   define ENTRY(ENTRY_name, ENTRY_value) settings->push(Setting(ENTRY_name, ENTRY_value));
+#   define ENTRY(ENTRY_name, ENTRY_value) g_settings->push(Setting(ENTRY_name, ENTRY_value));
     SETTINGS_LIST
 #   undef ENTRY
 
@@ -51,7 +62,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 #   undef ENTRY
     
     // Bind callbacks
-#   define ENTRY(ENTRY_name, ENTRY_callback) settings->find(ENTRY_name)->callback = ENTRY_callback;
+#   define ENTRY(ENTRY_name, ENTRY_callback) g_settings->find(ENTRY_name)->callback = ENTRY_callback;
     SETTINGS_CALLBACKS_LIST
 #   undef ENTRY
     
@@ -113,81 +124,16 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
         
         // Find setting.
         try {
-            setting = settings->find(var);
+            setting = g_settings->find(var);
         }
         catch (std::logic_error& e) {
             // It's really just fine.
-            std::cerr << "Couldn't find setting \"" << var << "\"." << std::endl;
+            std::cerr << "(main_parseCommandLineArguments) Couldn't find setting \"" << var << "\"." << std::endl;
             continue;
         }
         
         // Set setting.
-        switch (setting->type) {
-        case settingsType_boolean:
-            if (value.length() == 0) {
-                setting->set(true);
-            }
-            try {
-                // Mainly for fun.
-                tempBool = !!std::stoi(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempBool);
-            break;
-        case settingsType_integer:
-            if (value.length() == 0) {
-                setting->set(1);
-            }
-            try {
-                tempInt = std::stoi(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempInt);
-            break;
-        case settingsType_float:
-            if (value.length() == 0) {
-                setting->set(1.0f);
-            }
-            try {
-                tempFloat = std::stof(value);
-            }
-            catch (std::invalid_argument& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            catch (std::out_of_range& e) {
-                std::cerr << "Could not convert option \"" << var << "\"'s value \""
-                    << value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
-                break;
-            }
-            setting->set(tempFloat);
-            break;
-        case settingsType_string:
-            setting->set(value);
-            break;
-        default:
-            std::cerr << "Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
-            throw std::logic_error("Can't happen.");
-        }
+        settings_setFromString(setting, value, NULL);
     }
 }
 
@@ -304,8 +250,8 @@ int main(int argc, char *argv[]){
     }
 
     //Destroying and Quitting
-    SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
     window = nullptr;
     IMG_Quit();
     SDL_Quit();
