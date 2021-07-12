@@ -1,6 +1,6 @@
 #include "SDLevents.h"
-#include <SDL2/SDL.h>
 #include <iostream>
+#include <SDL2/SDL.h>
 #include "types.h"
 #include "basicVisuals.h"
 
@@ -75,7 +75,15 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
 	}
 }
 
-int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE,color_t p1Color,color_t p2Color)
+int SP_EventHandle(SDL_Event* event,
+                   SDL_Window* window,
+                   SDL_Renderer* renderer,
+                   gameState* GAME_STATE,
+                   color_t p1Color,
+                   color_t p2Color,
+                   std::vector<Button> *boardButtons,
+                   int boardWidth,
+                   int boardHeight)
 {
 	switch(event->type)
 	{
@@ -86,8 +94,10 @@ int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,ga
 	case SDL_MOUSEMOTION:
 		break;
 	case SDL_MOUSEBUTTONDOWN:
-		break;
 	case SDL_MOUSEBUTTONUP:
+		for (int i = 0; i < boardWidth * boardHeight; i++) {
+			(*boardButtons)[i].check(event->button);
+		}
 		break;
 	
 	//WINDOW ACTIONS

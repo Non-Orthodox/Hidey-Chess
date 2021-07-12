@@ -1,6 +1,8 @@
 #include "basicVisuals.h"
+#include <iostream>
 #include <SDL2/SDL.h>
 #include "types.h"
+#include "settings.h"
 
 //x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
 void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1Col, color_t p2Col)
@@ -39,5 +41,22 @@ void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1C
 
 		//boolean flip
 		p1Tile = !p1Tile;
+	}
+}
+
+//x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
+void renderBoard_button(std::vector<Button> boardButtons, const int width, const int height)
+{
+	for(int y = 0; y < height; y++) 
+	{
+		for(int x = 0; x < width; x++)
+		{
+			try {
+				boardButtons[width * y + x].draw();
+			}
+			catch (std::logic_error& e) {
+				std::cerr << "Error while drawing board." << std::endl;
+			}
+		}
 	}
 }

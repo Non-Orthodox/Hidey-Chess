@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <vector>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDLevents.h"
@@ -11,30 +12,7 @@
 #include "settings.h"
 #include "types.h"
 #include "board.h"
-
-#define SETTINGS_LIST \
-	ENTRY("peer_ip_address", "localhost") \
-	ENTRY("peer_network_port", 2850) \
-	ENTRY("network_port", 2851) \
-	ENTRY("set", "") \
-	ENTRY("print", "") \
-	ENTRY("echo", "") \
-	ENTRY("==", "") \
-	ENTRY("!=", "") \
-	ENTRY("", "")
-
-#define SETTINGS_ALIAS_LIST \
-	ENTRY('a', "peer_ip_address") \
-	ENTRY('p', "peer_network_port") \
-	ENTRY('n', "network_port") \
-
-#define SETTINGS_CALLBACKS_LIST \
-	ENTRY("set", settings_callback_set) \
-	ENTRY("print", settings_callback_print) \
-	ENTRY("echo", settings_callback_echo) \
-	ENTRY("==", settings_callback_equal) \
-	ENTRY("!=", settings_callback_notEqual) \
-	ENTRY("", settings_callback_chain)
+#include "gui.h"
 
 SettingsList *g_settings;
 
@@ -44,7 +22,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	g_settings = new SettingsList();
 	
 	// Register settings.
-#   define ENTRY(ENTRY_name, ENTRY_value) g_settings->push(Setting(ENTRY_name, ENTRY_value));
+#   define ENTRY(ENTRY_name, ENTRY_value) g_settings->push(Setting(#ENTRY_name, ENTRY_value));
 	SETTINGS_LIST
 #   undef ENTRY
 
@@ -55,14 +33,14 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	};
 #   undef ENTRY
 	
-#   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_name,
+#   define ENTRY(ENTRY_letter, ENTRY_name) #ENTRY_name,
 	std::string optionsAliases[] = {
 		SETTINGS_ALIAS_LIST
 	};
 #   undef ENTRY
 	
 	// Bind callbacks
-#   define ENTRY(ENTRY_name, ENTRY_callback) g_settings->find(ENTRY_name)->callback = ENTRY_callback;
+#   define ENTRY(ENTRY_name, ENTRY_callback) g_settings->find(#ENTRY_name)->callback = ENTRY_callback;
 	SETTINGS_CALLBACKS_LIST
 #   undef ENTRY
 	
@@ -141,6 +119,10 @@ int main(int argc, char *argv[]){
 
 	main_parseCommandLineArguments(argc, argv);
 	
+	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
+	const int boardWidth = (*g_settings)[settingEnum_board_width]->getInt();
+	const int boardHeight = (*g_settings)[settingEnum_board_height]->getInt();
+
 	//Initializing SDL
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 	{
@@ -199,6 +181,30 @@ int main(int argc, char *argv[]){
 	int winWidth, winHeight; //used to store window dimensions
 	gameState GAME_STATE = MAIN_MENU;
 	pieces board[8][8];
+	std::vector<Button> boardButtons;
+	Setting *tempSetting;
+	SDL_Rect tempRect;
+	
+	SDL_GetWindowSize(window, &winWidth, &winHeight);
+	
+	tempRect.w = winHeight/12;
+	tempRect.h = winHeight/12;
+	
+	for (int y = 0; y < boardHeight; y++) {
+		for (int x = 0; x < boardWidth; x++) {
+			tempSetting = new Setting("x" + std::to_string(x) + "y" + std::to_string(y), false);
+			tempRect.x = winHeight/2 - boardWidth/2.0*tempRect.w + x*tempRect.w;
+			tempRect.y = winHeight/2 - boardHeight/2.0*tempRect.h + y*tempRect.h;
+			boardButtons.push_back(Button(tempSetting, renderer, tempRect));
+			// Toggle switch.
+			boardButtons.back().toggle = true;
+			// Toggle on button release.
+			boardButtons.back().toggleOnUp = true;
+			// Colors.
+			boardButtons.back().pressedColor = ((x ^ y) & 1) ? (color_t){0xBF, 0xBF, 0xBF} : (color_t) {0x40, 0x40, 0x40};
+			boardButtons.back().releasedColor = ((x ^ y) & 1) ? (color_t){0xFF, 0xFF, 0xFF} : (color_t) {0x00, 0x00, 0x00};
+		}
+	}
 
 	//temporary
 	GAME_STATE = SINGLEPLAYER;
@@ -207,7 +213,8 @@ int main(int argc, char *argv[]){
 	{
 		//Block of temporary lines used for testing
 		SDL_GetWindowSize(window, &winWidth, &winHeight);
-		renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
+		// renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
+		renderBoard_button(boardButtons, boardWidth, boardHeight);
 		SDL_RenderPresent(renderer);
 
 
@@ -233,9 +240,12 @@ int main(int argc, char *argv[]){
 				{
 					while (SDL_PollEvent(&event)) 
 					{
-						run = SP_EventHandle(&event, window, renderer,&GAME_STATE,p1Color,p2Color);
+						run = SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 					}
 
+					renderBoard_button(boardButtons, boardWidth, boardHeight);
+					SDL_RenderPresent(renderer);
+					
 					if(run == 0)
 					{
 						break;
