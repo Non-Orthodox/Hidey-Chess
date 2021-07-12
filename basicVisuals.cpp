@@ -3,7 +3,7 @@
 #include "types.h"
 
 //x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
-void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, teamColor p1Col, teamColor p2Col)
+void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1Col, color_t p2Col)
 {
     int error;
     SDL_Rect rect;
