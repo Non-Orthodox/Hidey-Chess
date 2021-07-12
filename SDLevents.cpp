@@ -2,6 +2,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include "types.h"
+#include "basicVisuals.h"
 
 int SDL_eventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* renderer)
 {
@@ -74,7 +75,7 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
     }
 }
 
-int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE)
+int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE,teamColor p1Color,teamColor p2Color)
 {
     switch(event->type)
     {
@@ -91,8 +92,49 @@ int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,ga
     
     //WINDOW ACTIONS
     case SDL_WINDOWEVENT:
-        break;
+        switch(event->window.event)
+        {
+        case SDL_WINDOWEVENT_RESIZED:
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+            int winWidth, winHeight;
+            SDL_GetWindowSize(window, &winWidth, &winHeight);
+            renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
+            //render pieces
+            SDL_RenderPresent(renderer);
+            break;
+        case SDL_WINDOWEVENT_LEAVE:
+            //std::cout << "mouse left window" << std::endl;
+            break;
+        case SDL_WINDOWEVENT_ENTER:
+            //std::cout << "mouse entered window" << std::endl;
+            break;
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            //std::cout << "window lost keyboard focus" << std::endl;
+            break;
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            //std::cout << "window gained keyboard focus" << std::endl;
+            break;
+        case SDL_WINDOWEVENT_SHOWN:
+            break;
+        case SDL_WINDOWEVENT_HIDDEN:
+            break;
+        case SDL_WINDOWEVENT_EXPOSED:
+            break;
+        case SDL_WINDOWEVENT_MOVED:
+            break;
+        case SDL_WINDOWEVENT_MINIMIZED:
+            break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+            break;
+        case SDL_WINDOWEVENT_RESTORED:
+            break;
 
+        default:
+            std::cout << "unhandled window event" << std::endl;
+            break;
+        break;
+        }
+        
     //PRINT NOT YET ADDED ACTION TYPES
     default:
         std::cout << event->type << " not accounted for in SP handler" << std::endl;

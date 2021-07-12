@@ -205,7 +205,6 @@ int main(int argc, char *argv[]){
 
     while(run)
     {
-
         //Block of temporary lines used for testing
         SDL_GetWindowSize(window, &winWidth, &winHeight);
         renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
@@ -234,7 +233,7 @@ int main(int argc, char *argv[]){
                 {
                     while (SDL_PollEvent(&event)) 
                     {
-                        run = SP_EventHandle(&event, window, renderer,&GAME_STATE);
+                        run = SP_EventHandle(&event, window, renderer,&GAME_STATE,p1Color,p2Color);
                     }
 
                     if(run == 0)
