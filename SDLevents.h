@@ -10,6 +10,6 @@ void windowEventHandle(SDL_Event*,SDL_Window*,SDL_Renderer*);
 //int MainMenuEventHandle();
 //int UserTurnEventHandle();
 //int EnemyTurnEventHandle();
-int SP_EventHandle(SDL_Event*,SDL_Window*,SDL_Renderer*,gameState*,teamColor,teamColor);
+int SP_EventHandle(SDL_Event*,SDL_Window*,SDL_Renderer*,gameState*,color_t,color_t);
 
 #endif

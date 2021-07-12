@@ -75,7 +75,7 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
     }
 }
 
-int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE,teamColor p1Color,teamColor p2Color)
+int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,gameState* GAME_STATE,color_t p1Color,color_t p2Color)
 {
     switch(event->type)
     {
@@ -134,7 +134,7 @@ int SP_EventHandle(SDL_Event* event,SDL_Window* window,SDL_Renderer* renderer,ga
             break;
         break;
         }
-        
+
     //PRINT NOT YET ADDED ACTION TYPES
     default:
         std::cout << event->type << " not accounted for in SP handler" << std::endl;
