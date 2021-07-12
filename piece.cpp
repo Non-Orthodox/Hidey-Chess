@@ -2,25 +2,25 @@
 
 piece::piece(int x, int y, team_t color)
 {
-    coords[0] = x;
-    coords[1] = y;
-    team = color;
+	coords[0] = x;
+	coords[1] = y;
+	team = color;
 }
 
 piece::~piece () {}
 
 int* piece::giveCoords()
 {
-    return(coords);
+	return(coords);
 }
 
 bool piece::isValidMove(int a, int b)
 {
-    return(true);
+	return(true);
 }
 
 void piece::move(int x, int y)
 {
-    coords[0] = x;
-    coords[1] = y;
+	coords[0] = x;
+	coords[1] = y;
 }
