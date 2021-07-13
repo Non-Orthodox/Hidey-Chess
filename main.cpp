@@ -186,9 +186,12 @@ int main(int argc, char *argv[]){
     // SDL_Rect rect;
     // rect.h = rect.w = 50;
     // rect.x = rect.y = 100;
-    // SDL_Surface* surface = IMG_Load("../res/image.png");
+    // SDL_Surface* surface = IMG_Load("../res/knight.png");
+    // int er;
+    // er = SDL_SetSurfaceColorMod(surface, 0x00, 0x00, 0xFF);
     // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
     // SDL_RenderCopy(renderer, texture, nullptr, &rect);
+
 
 
 
@@ -205,13 +208,6 @@ int main(int argc, char *argv[]){
 
     while(run)
     {
-        //Block of temporary lines used for testing
-        SDL_GetWindowSize(window, &winWidth, &winHeight);
-        renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
-        SDL_RenderPresent(renderer);
-
-
-
         switch(GAME_STATE)
         {
             case MAIN_MENU:
@@ -227,7 +223,8 @@ int main(int argc, char *argv[]){
                 std::cout << "Now in Singleplayer" << std::endl;
                 standardBoardInit(board);
                 printStandardBoard(board);
-                //renderBoard();
+                SDL_GetWindowSize(window, &winWidth, &winHeight);
+                renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
                 //renderPieces();
                 while(GAME_STATE == SINGLEPLAYER)
                 {
@@ -249,6 +246,7 @@ int main(int argc, char *argv[]){
     }
 
     //Destroying and Quitting
+    SDL_FreeSurface(surface);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     window = nullptr;

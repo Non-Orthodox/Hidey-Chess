@@ -57,7 +57,11 @@ void printStandardBoard(pieces board[][8])
     {
         for(int j = 0; j < 8; j++) 
         {
-            std::cout << board[j][i].type << " ";
+            if(board[j][i].white)
+                std::cout << "w" << board[j][i].type << " ";
+            else
+                std::cout << "b" << board[j][i].type << " ";
+            
         }
         std::cout << std::endl << std::endl;
     }
