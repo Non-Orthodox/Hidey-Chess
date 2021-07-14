@@ -2,6 +2,7 @@
 #define GUI_H
 
 #include <stdexcept>
+#include <iostream>
 #include <SDL2/SDL.h>
 #include "settings.h"
 #include "types.h"
@@ -17,6 +18,8 @@ public:
 	bool active = true;
 	// Toggle or momentary contact.
 	bool toggle = false;
+	// Toggle on mouse down or mouse up.
+	bool toggleOnUp = false;
 	bool toggleState = false;
 	// Displayed or not.
 	bool shown = true;
@@ -26,12 +29,8 @@ public:
 	// Determines which buttons trigger an action.
 	uint8_t buttonMask = (1<<SDL_BUTTON_LEFT);
 	
-	void callback_mousePressed(void);
-	void callback_mouseReleased(void);
-	void callback_buttonTransistionOn(void);
-	void callback_buttonTransistionOff(void);
-	
 	Button(Setting *setting, SDL_Renderer *renderer, SDL_Rect rect) {
+		assert(setting->type == settingsType_boolean);
 		this->setting = setting;
 		this->rect = rect;
 		this->renderer = renderer;
@@ -47,7 +46,7 @@ public:
 		if (!active) {
 			color = greyedColor;
 		}
-		else if (currentlyPressed) {
+		else if (toggleState) {
 			color = pressedColor;
 		}
 		else {
@@ -76,55 +75,61 @@ public:
 	
 		bool mouseIsPressed = false;
 		
+		if ((mouseButtonEvent.x < rect.x) || (mouseButtonEvent.x > rect.x + rect.w) || (mouseButtonEvent.y < rect.y) || (mouseButtonEvent.y > rect.y + rect.h)) {
+			if (toggle) {
+				return toggleState;
+			}
+			return false;
+		}
+		
 		for (int i = 0; i < 5; i++) {
 			if (((1<<i) & buttonMask) && (mouseButtonEvent.button == i)) {
-				mouseIsPressed = true;
+				mouseIsPressed = mouseButtonEvent.state;
 			}
 		}
 		
 		// First time mouse is pressed.
 		if (!currentlyPressed && mouseIsPressed) {
-			currentlyPressed = true;
 			
 			if (toggle) {
-				toggleState = !toggleState;
-				
-				// Toggle on press.
-				if (toggleState) {
-					callback_buttonTransistionOn();
-				}
-				else {
-					callback_buttonTransistionOff();
+				if (!toggleOnUp) {
+					toggleState = !toggleState;
+					
+					// // Toggle on press.
+					// if (toggleState) {
+					// }
+					// else {
+					// }
+					setting->set(toggleState);
 				}
 			}
 			else {
 				toggleState = mouseIsPressed;
-				
-				callback_buttonTransistionOn();
+				setting->set(toggleState);
 			}
+		}
+		// First time mouse is released.
+		else if (currentlyPressed && !mouseIsPressed) {
 			
-			// Run pressed callback.
-			callback_mousePressed();
+			if (toggle) {
+				if (toggleOnUp) {
+					toggleState = !toggleState;
+					
+					// // Toggle on press.
+					// if (toggleState) {
+					// }
+					// else {
+					// }
+					setting->set(toggleState);
+				}
+			}
+			else {
+				toggleState = mouseIsPressed;
+				setting->set(toggleState);
+			}
 		}
 		
-		// First time mouse is released.
-		if (currentlyPressed && !mouseIsPressed) {
-			currentlyPressed = false;
-			
-			if (toggle) {
-				toggleState = !toggleState;
-				
-				// No toggling on release... yet.
-			}
-			else {
-				toggleState = mouseIsPressed;
-				
-				callback_buttonTransistionOff();
-			}
-			
-			// Run released callback.
-			callback_mouseReleased();
-		}
+		currentlyPressed = mouseIsPressed;
 		
 		return toggleState;
 	}

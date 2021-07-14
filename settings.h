@@ -165,4 +165,39 @@ int settings_callback_chain(Setting *setting);
 int settings_callback_equal(Setting *setting);
 int settings_callback_notEqual(Setting *setting);
 
+/* Settings */
+
+#define SETTINGS_LIST \
+	ENTRY(peer_ip_address, "localhost") \
+	ENTRY(peer_network_port, 2850) \
+	ENTRY(network_port, 2851) \
+	ENTRY(board_width, 8) \
+	ENTRY(board_height, 8) \
+	\
+	ENTRY(set, "") \
+	ENTRY(print, "") \
+	ENTRY(echo, "") \
+	ENTRY(eq, "") \
+	ENTRY(neq, "") \
+	ENTRY(chain, "")
+
+#define SETTINGS_ALIAS_LIST \
+	ENTRY('a', peer_ip_address) \
+	ENTRY('p', peer_network_port) \
+	ENTRY('n', network_port) \
+
+#define SETTINGS_CALLBACKS_LIST \
+	ENTRY(set, settings_callback_set) \
+	ENTRY(print, settings_callback_print) \
+	ENTRY(echo, settings_callback_echo) \
+	ENTRY(eq, settings_callback_equal) \
+	ENTRY(neq, settings_callback_notEqual) \
+	ENTRY(chain, settings_callback_chain)
+
+#define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
+enum settingEnum_t {
+	SETTINGS_LIST
+};
+#undef ENTRY
+
 #endif // SETTINGS_H
