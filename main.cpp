@@ -244,9 +244,6 @@ int main(int argc, char *argv[]){
 					run = SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				}
 
-				renderBoard_button(boardButtons, boardWidth, boardHeight);
-				SDL_RenderPresent(renderer);
-				
 				// 	if(run == 0)
 				// 	{
 				// 		break;
@@ -257,6 +254,9 @@ int main(int argc, char *argv[]){
 			default:
 				break;
 		}
+		
+		renderBoard_button(boardButtons, boardWidth, boardHeight);
+		SDL_RenderPresent(renderer);
 	}
 
 	//Destroying and Quitting
