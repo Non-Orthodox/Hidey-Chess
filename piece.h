@@ -1,7 +1,7 @@
 #ifndef PIECE_H
 #define PIECE_H
 
-typedef enum {white,black} team_t;
+typedef enum {none=0,white,black} team_t;
 enum chessPieceType {none=0,pawn,rook,knight,bishop,queen,king};
 
 class piece
@@ -10,9 +10,9 @@ class piece
 		int coords[2];
 	public:
 		int type = 0;
-		team_t team;
+		team_t team = none;
 
-		piece () {};
+		piece () {}
 
 		piece (int x, int y, team_t team)
 		{
@@ -21,7 +21,7 @@ class piece
 			this->team = team;
 		}
 
-		~piece () {};
+		~piece () {}
 
 		int* giveCoords()
 		{
@@ -38,12 +38,10 @@ class piece
 
 class chessPiece : public piece 
 {
-	protected:
-		bool sameColor;               //if piece is on tile of same color
 	public:
 		bool highL = false;           //true if highlighted
 
-		chessPiece () {};
+		chessPiece () {}
 
 		chessPiece (int x, int y, team_t team)
 		{
@@ -52,7 +50,7 @@ class chessPiece : public piece
 			this->team = team;
 		}
 
-		~chessPiece () {};
+		~chessPiece () {}
 };
 
 #endif
