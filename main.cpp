@@ -216,44 +216,42 @@ int main(int argc, char *argv[]){
 	}
 
 	//temporary
-	GAME_STATE = SINGLEPLAYER;
+	GAME_STATE = MAIN_MENU;
 
 	while(run)
 	{
 		switch(GAME_STATE)
 		{
 			case MAIN_MENU:
-				break;
-
-			case USER_TURN:
-				break;
-
-			case ENEMY_TURN:
-				break;
-
-			case SINGLEPLAYER:
 				std::cout << "Now in Singleplayer" << std::endl;
 				standardChessBoardInit(board);
 				printChessBoard(board);
-				renderBoard_button(boardButtons, boardWidth, boardHeight);
-				SDL_RenderPresent(renderer);
+				GAME_STATE = SINGLEPLAYER;
+				break;
+
+			case MULTIPLAYER:
+				break;
+
+			case SINGLEPLAYER:
+				// renderBoard_button(boardButtons, boardWidth, boardHeight);
+				// SDL_RenderPresent(renderer);
 				//renderBoard();
 				//renderPieces();
-				while(GAME_STATE == SINGLEPLAYER)
+				// while(GAME_STATE == SINGLEPLAYER)
+				// {
+				while (SDL_PollEvent(&event)) 
 				{
-					while (SDL_PollEvent(&event)) 
-					{
-						run = SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
-					}
-
-					renderBoard_button(boardButtons, boardWidth, boardHeight);
-					SDL_RenderPresent(renderer);
-					
-					if(run == 0)
-					{
-						break;
-					}
+					run = SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				}
+
+				renderBoard_button(boardButtons, boardWidth, boardHeight);
+				SDL_RenderPresent(renderer);
+				
+				// 	if(run == 0)
+				// 	{
+				// 		break;
+				// 	}
+				// }
 				break;
 
 			default:

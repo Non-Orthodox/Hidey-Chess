@@ -95,11 +95,6 @@ public:
 				if (!toggleOnUp) {
 					toggleState = !toggleState;
 					
-					// // Toggle on press.
-					// if (toggleState) {
-					// }
-					// else {
-					// }
 					setting->set(toggleState);
 				}
 			}
@@ -107,6 +102,8 @@ public:
 				toggleState = mouseIsPressed;
 				setting->set(toggleState);
 			}
+			// We could place `setting->set` here, but then the callback would
+			// be run even if there was no change in state.
 		}
 		// First time mouse is released.
 		else if (currentlyPressed && !mouseIsPressed) {
@@ -115,11 +112,6 @@ public:
 				if (toggleOnUp) {
 					toggleState = !toggleState;
 					
-					// // Toggle on press.
-					// if (toggleState) {
-					// }
-					// else {
-					// }
 					setting->set(toggleState);
 				}
 			}
