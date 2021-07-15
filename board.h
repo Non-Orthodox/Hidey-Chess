@@ -2,8 +2,11 @@
 #define BOARD_H
 
 #include "types.h"
+#include "piece.h"
 
-void standardBoardInit(pieces [][8]);
-void printStandardBoard(pieces [][8]);
+void standardChessBoardInit(chessPiece [][8]);
+void printChessBoard(chessPiece [][8]);
+
+
 
 #endif

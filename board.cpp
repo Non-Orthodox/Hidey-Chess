@@ -1,8 +1,9 @@
 #include "board.h"
 #include "types.h"
+#include "piece.h"
 #include <iostream>
 
-void standardBoardInit(pieces board[][8])
+void standardChessBoardInit(chessPiece board[][8])
 {
 	for(int i = 0; i < 8; i++) 
 	{
@@ -35,29 +36,27 @@ void standardBoardInit(pieces board[][8])
 		{
 			for(int j = 0; j < 8; j++) 
 			{
-				board[i][j].white = true;
-				board[i][j].highL = false;
+				board[i][j].team = white;
 			}
 		}
 		else if((i == 6)||(i == 7))
 		{
 			for(int j = 0; j < 8; j++) 
 			{
-				board[i][j].white = false;
-				board[i][j].highL = false;
+				board[i][j].team = black;
 			}
 		}
 	}
 }
 
-void printStandardBoard(pieces board[][8])
+void printChessBoard(chessPiece board[][8])
 {
     std::cout << std::endl;
     for(int i = 0; i < 8; i++) 
     {
         for(int j = 0; j < 8; j++) 
         {
-            if(board[j][i].white)
+            if(board[j][i].team == white)
                 std::cout << "w" << board[j][i].type << " ";
             else
                 std::cout << "b" << board[j][i].type << " ";

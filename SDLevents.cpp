@@ -107,8 +107,8 @@ int SP_EventHandle( SDL_Event* event,
 		case SDL_WINDOWEVENT_RESIZED:
 		case SDL_WINDOWEVENT_SIZE_CHANGED:
 			int winWidth, winHeight;
-			SDL_GetWindowSize(window, &winWidth, &winHeight);
-			renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
+			//SDL_GetWindowSize(window, &winWidth, &winHeight);
+			//renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
 			//render pieces
 			SDL_RenderPresent(renderer);
 			break;
