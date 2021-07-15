@@ -75,15 +75,15 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
 	}
 }
 
-int SP_EventHandle(SDL_Event* event,
-                   SDL_Window* window,
-                   SDL_Renderer* renderer,
-                   gameState* GAME_STATE,
-                   color_t p1Color,
-                   color_t p2Color,
-                   std::vector<Button> *boardButtons,
-                   int boardWidth,
-                   int boardHeight)
+int SP_EventHandle( SDL_Event* event,
+                    SDL_Window* window,
+                    SDL_Renderer* renderer,
+                    gameState* GAME_STATE,
+                    color_t p1Color,
+                    color_t p2Color,
+                    std::vector<Button> *boardButtons,
+                    int boardWidth,
+                    int boardHeight)
 {
 	switch(event->type)
 	{

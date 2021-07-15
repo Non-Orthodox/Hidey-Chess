@@ -11,12 +11,7 @@ piece::~piece () {}
 
 int* piece::giveCoords()
 {
-	return(coords);
-}
-
-bool piece::isValidMove(int a, int b)
-{
-	return(true);
+	return(this->coords);
 }
 
 void piece::move(int x, int y)

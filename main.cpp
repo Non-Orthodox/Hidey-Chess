@@ -220,14 +220,6 @@ int main(int argc, char *argv[]){
 
 	while(run)
 	{
-		//Block of temporary lines used for testing
-		SDL_GetWindowSize(window, &winWidth, &winHeight);
-		// renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
-		renderBoard_button(boardButtons, boardWidth, boardHeight);
-		SDL_RenderPresent(renderer);
-
-
-
 		switch(GAME_STATE)
 		{
 			case MAIN_MENU:
@@ -243,6 +235,8 @@ int main(int argc, char *argv[]){
 				std::cout << "Now in Singleplayer" << std::endl;
 				standardBoardInit(board);
 				printStandardBoard(board);
+				renderBoard_button(boardButtons, boardWidth, boardHeight);
+				SDL_RenderPresent(renderer);
 				//renderBoard();
 				//renderPieces();
 				while(GAME_STATE == SINGLEPLAYER)
