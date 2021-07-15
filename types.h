@@ -10,6 +10,6 @@ struct color_t
 	uint8_t blue;
 };
 
-enum gameState {NONE, MAIN_MENU, MULTIPLAYER, SINGLEPLAYER};
+enum gameState {NONE, MAIN_MENU, MULTIPLAYER, SINGLEPLAYER, CONSOLE_MODE};
 
 #endif

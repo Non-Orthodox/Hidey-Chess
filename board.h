@@ -11,35 +11,67 @@ void printChessBoard(piece [][8]);
 class tile
 {
     public:
-        piece* p;
-        int color;
+        piece* p = nullptr;
+        int coords[2] = {0,0};
+        int colorNum = 0;
         tile() {}
-        tile(int color)
+        tile(int colorNum)
         {
-            this->color = color;
+            this->colorNum = colorNum;
         }
-        tile(piece* piece, int color)
+        tile(int colorNum, piece* piece)
         {
             this->p = piece;
-            this->color = color;
+            this->colorNum = colorNum;
         }
         ~tile() {}
+
+        //This function and the existence of coords may be unnecessary, depending on controller structure
+        void setCoords(int x, int y)
+        {
+            this->coords[0] = x;
+            this->coords[1] = y;
+        }
 };
 
 class board
 {
     private:
-        int width, height = 8;
+        int width, height;
     public:
         std::vector<piece> pieceList;
-        tile* tiles;
+        std::vector<tile> tiles;
 
-        board() {}
         board(int width, int height)
         {
-
+            tiles.resize(width*height);
+            for(int i = 0; i < (width*height); i++) 
+            {
+                tiles[i].setCoords(i%width,(i-(i%width))/width);
+            }
         }
         ~board() {}
+
+        //note that killed pieces are kept in the pieceList at the moment
+        void addPiece(int type, team_t team, int x, int y)
+        {
+            piece temp(type,team);
+            pieceList.push_back(temp);
+            tiles[(y*width)+x].p = &pieceList[pieceList.size()-1]; //very uncertain of if this works
+        }
+
+        //if a piece is in the spot (x2,y2), then it must be moved or killed before moving another piece to (x2,y2)
+        void movePiece(int x1, int y1, int x2, int y2)
+        {
+            tiles[(y2*width)+x2].p = tiles[(y1*width)+x1].p;
+            tiles[(y1*width)+x1].p = nullptr;
+        }
+
+        void killPiece(int x, int y)
+        {
+            (tiles[(y*width)+x].p)->kill();
+        }
+
 
 };
 

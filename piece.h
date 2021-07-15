@@ -8,20 +8,19 @@ class piece
 {
 	protected:
 		int coords[2];
+		bool alive = true;
 	public:
 		int type = 0;
 		team_t team = neutral;
 
-		piece () {}
-
-		piece (int x, int y, team_t team)
+		piece() {}
+		piece(int type, team_t team)
 		{
-			this->coords[0] = x;
-			this->coords[1] = y;
+			this->type = type;
 			this->team = team;
 		}
 
-		~piece () {}
+		~piece() {}
 
 		int* giveCoords()
 		{
@@ -33,6 +32,13 @@ class piece
 			this->coords[0] = x;
 			this->coords[1] = y;
 		}
+
+		void kill()
+		{
+			this->alive = false;
+		}
+
+
 };
 
 

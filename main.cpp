@@ -251,10 +251,14 @@ int main(int argc, char *argv[]){
 				// }
 				break;
 
+			//console mode is for testing the game without using graphics
+			case CONSOLE_MODE:
+				break;
+
 			default:
 				break;
 		}
-		
+
 		renderBoard_button(boardButtons, boardWidth, boardHeight);
 		SDL_RenderPresent(renderer);
 	}
