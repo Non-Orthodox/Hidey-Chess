@@ -4,8 +4,8 @@
 #include "types.h"
 #include "piece.h"
 
-void standardChessBoardInit(chessPiece [][8]);
-void printChessBoard(chessPiece [][8]);
+void standardChessBoardInit(piece [][8]);
+void printChessBoard(piece [][8]);
 
 
 

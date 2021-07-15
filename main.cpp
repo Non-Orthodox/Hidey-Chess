@@ -189,7 +189,7 @@ int main(int argc, char *argv[]){
 	int run = 1;
 	int winWidth, winHeight; //used to store window dimensions
 	gameState GAME_STATE = MAIN_MENU;
-	chessPiece board[8][8];
+	piece board[8][8];
 	std::vector<Button> boardButtons;
 	Setting *tempSetting;
 	SDL_Rect tempRect;

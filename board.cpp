@@ -3,7 +3,7 @@
 #include "piece.h"
 #include <iostream>
 
-void standardChessBoardInit(chessPiece board[][8])
+void standardChessBoardInit(piece board[][8])
 {
 	for(int i = 0; i < 8; i++) 
 	{
@@ -49,7 +49,7 @@ void standardChessBoardInit(chessPiece board[][8])
 	}
 }
 
-void printChessBoard(chessPiece board[][8])
+void printChessBoard(piece board[][8])
 {
     std::cout << std::endl;
     for(int i = 0; i < 8; i++) 

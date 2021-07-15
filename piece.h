@@ -36,21 +36,21 @@ class piece
 };
 
 
-class chessPiece : public piece 
-{
-	public:
-		bool highL = false;           //true if highlighted
+// class chessPiece : public piece 
+// {
+// 	public:
+// 		bool highL = false;           //true if highlighted
 
-		chessPiece () {}
+// 		chessPiece () {}
 
-		chessPiece (int x, int y, team_t team)
-		{
-			this->coords[0] = x;
-			this->coords[1] = y;
-			this->team = team;
-		}
+// 		chessPiece (int x, int y, team_t team)
+// 		{
+// 			this->coords[0] = x;
+// 			this->coords[1] = y;
+// 			this->team = team;
+// 		}
 
-		~chessPiece () {}
-};
+// 		~chessPiece () {}
+// };
 
 #endif
