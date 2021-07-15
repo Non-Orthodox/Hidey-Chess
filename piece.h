@@ -1,7 +1,7 @@
 #ifndef PIECE_H
 #define PIECE_H
 
-typedef enum {none=0,white,black} team_t;
+typedef enum {neutral,white,black} team_t;
 enum chessPieceType {none=0,pawn,rook,knight,bishop,queen,king};
 
 class piece
@@ -10,7 +10,7 @@ class piece
 		int coords[2];
 	public:
 		int type = 0;
-		team_t team = none;
+		team_t team = neutral;
 
 		piece () {}
 
