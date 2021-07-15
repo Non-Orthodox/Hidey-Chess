@@ -178,8 +178,7 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY(print, "") \
 	ENTRY(echo, "") \
 	ENTRY(eq, "") \
-	ENTRY(neq, "") \
-	ENTRY(chain, "")
+	ENTRY(neq, "")
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('a', peer_ip_address) \
@@ -191,8 +190,7 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY(print, settings_callback_print) \
 	ENTRY(echo, settings_callback_echo) \
 	ENTRY(eq, settings_callback_equal) \
-	ENTRY(neq, settings_callback_notEqual) \
-	ENTRY(chain, settings_callback_chain)
+	ENTRY(neq, settings_callback_notEqual)
 
 #define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
 enum settingEnum_t {
