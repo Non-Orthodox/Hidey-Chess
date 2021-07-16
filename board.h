@@ -5,9 +5,6 @@
 #include "piece.h"
 #include <vector>
 
-void standardChessBoardInit(piece [][8]);
-void printChessBoard(piece [][8]);
-
 class tile
 {
     public:
@@ -57,7 +54,8 @@ class board
         {
             piece temp(type,team);
             pieceList.push_back(temp);
-            tiles[(y*width)+x].p = &pieceList[pieceList.size()-1]; //very uncertain of if this works
+            piece* pointer = pieceList.data();
+            tiles[(y*width)+x].p = pointer + pieceList.size() - 1; //very uncertain of if this works
         }
 
         //if a piece is in the spot (x2,y2), then it must be moved or killed before moving another piece to (x2,y2)
@@ -72,7 +70,14 @@ class board
             (tiles[(y*width)+x].p)->kill();
         }
 
+        piece* getTilePiece(int x, int y)
+        {
+            return(tiles[(y*width)+x].p);
+        }
 
 };
+
+void standardChessBoardInit(board*);
+void printChessBoard(board*);
 
 #endif

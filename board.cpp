@@ -3,63 +3,40 @@
 #include "piece.h"
 #include <iostream>
 
-void standardChessBoardInit(piece board[][8])
+void standardChessBoardInit(board* board)
 {
-	for(int i = 0; i < 8; i++) 
-	{
-		//setting piece types
-		if((i == 0) || (i == 7)) 
-		{
-			board[i][0].type = board[i][7].type = rook;
-			board[i][1].type = board[i][6].type = knight;
-			board[i][2].type = board[i][5].type = bishop;
-			board[i][3].type = king;
-			board[i][4].type = queen;
-		}
-		else if((i == 1) || (i == 6))
-		{
-			for(int j = 0; j < 8; j++) 
-			{
-				board[i][j].type = pawn;
-			}
-		}
-		else
-		{
-			for(int j = 0; j < 8; j++) 
-			{
-				board[i][j].type = none;
-			}
-		}
+	board->addPiece(2,white,0,0);
+	board->addPiece(3,white,0,1);
+	board->addPiece(4,white,0,2);
+	board->addPiece(5,white,0,3);
+	board->addPiece(6,white,0,4);
+	board->addPiece(4,white,0,5);
+	board->addPiece(3,white,0,6);
+	board->addPiece(2,white,0,7);
 
-		//setting team
-		if((i == 0)||(i == 1))
-		{
-			for(int j = 0; j < 8; j++) 
-			{
-				board[i][j].team = white;
-			}
-		}
-		else if((i == 6)||(i == 7))
-		{
-			for(int j = 0; j < 8; j++) 
-			{
-				board[i][j].team = black;
-			}
-		}
-	}
+	board->addPiece(2,black,7,0);
+	board->addPiece(3,black,7,1);
+	board->addPiece(4,black,7,2);
+	board->addPiece(5,black,7,3);
+	board->addPiece(6,black,7,4);
+	board->addPiece(4,black,7,5);
+	board->addPiece(3,black,7,6);
+	board->addPiece(2,black,7,7);
 }
 
-void printChessBoard(piece board[][8])
+void printChessBoard(board* board)
 {
+	piece* temp;
     std::cout << std::endl;
     for(int i = 0; i < 8; i++) 
     {
         for(int j = 0; j < 8; j++) 
         {
-            if(board[j][i].team == white)
-                std::cout << "w" << board[j][i].type << " ";
+			temp = board->getTilePiece(j,i);
+            if(temp->team == white)
+                std::cout << "w" << temp->type << " ";
             else
-                std::cout << "b" << board[j][i].type << " ";
+                std::cout << "b" << temp->type << " ";
             
         }
         std::cout << std::endl << std::endl;

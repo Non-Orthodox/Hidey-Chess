@@ -189,7 +189,7 @@ int main(int argc, char *argv[]){
 	int run = 1;
 	int winWidth, winHeight; //used to store window dimensions
 	gameState GAME_STATE = MAIN_MENU;
-	piece board[8][8];
+	board board(8,8);
 	std::vector<Button> boardButtons;
 	Setting *tempSetting;
 	SDL_Rect tempRect;
@@ -224,8 +224,8 @@ int main(int argc, char *argv[]){
 		{
 			case MAIN_MENU:
 				std::cout << "Now in Singleplayer" << std::endl;
-				standardChessBoardInit(board);
-				printChessBoard(board);
+				standardChessBoardInit(&board);
+				printChessBoard(&board);
 				GAME_STATE = SINGLEPLAYER;
 				break;
 
