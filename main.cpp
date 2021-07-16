@@ -239,10 +239,10 @@ int main(int argc, char *argv[]){
 				//renderPieces();
 				// while(GAME_STATE == SINGLEPLAYER)
 				// {
-				while (SDL_PollEvent(&event)) 
-				{
-					run = SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
-				}
+				// while (SDL_PollEvent(&event)) 
+				// {
+				run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
+				// }
 
 				// 	if(run == 0)
 				// 	{
