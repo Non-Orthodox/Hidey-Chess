@@ -192,6 +192,7 @@ int main(int argc, char *argv[]){
 	gameState GAME_STATE = MAIN_MENU;
 	board board(8,8);
 	std::vector<Button> boardButtons;
+	std::vector<Button> guiButtons;
 	Setting *tempSetting;
 	SDL_Rect tempRect;
 	
@@ -209,28 +210,47 @@ int main(int argc, char *argv[]){
 			// Toggle switch.
 			boardButtons.back().toggle = true;
 			// Toggle on button release.
-			boardButtons.back().toggleOnUp = true;
+			boardButtons.back().toggleOnUp = false;
 			// Colors.
 			boardButtons.back().pressedColor = ((x ^ y) & 1) ? (color_t){0xBF, 0xBF, 0xBF} : (color_t) {0x40, 0x40, 0x40};
 			boardButtons.back().releasedColor = ((x ^ y) & 1) ? (color_t){0xFF, 0xFF, 0xFF} : (color_t) {0x00, 0x00, 0x00};
 		}
 	}
-
-	//temporary
-	GAME_STATE = MAIN_MENU;
-
+	
+	tempSetting = new Setting("singleplayer", false);
+	tempRect.x = 50;
+	tempRect.y = 50;
+	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
+	guiButtons.back().pressedColor = (color_t){0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = (color_t){0x00, 0xBF, 0x00};
+	
+	tempSetting = new Setting("multiplayer", false);
+	tempRect.x = 50;
+	tempRect.y = 150;
+	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
+	guiButtons.back().pressedColor = (color_t){0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = (color_t){0x00, 0xBF, 0x00};
+	
+	// standardChessBoardInit(&board);
+	
 	while(run)
 	{
 		switch(GAME_STATE)
 		{
 			case MAIN_MENU:
-				std::cout << "Now in Singleplayer" << std::endl;
-				standardChessBoardInit(&board);
-				printChessBoard(&board);
-				GAME_STATE = SINGLEPLAYER;
+				// printChessBoard(&board);
+				run = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
+				// GAME_STATE = SINGLEPLAYER;
+				if (GAME_STATE == SINGLEPLAYER) {
+					std::cout << "Now in Singleplayer" << std::endl;
+				}
+				else if (GAME_STATE == MULTIPLAYER) {
+					std::cout << "Now in Multiplayer" << std::endl;
+				}
 				break;
 
 			case MULTIPLAYER:
+				run = !MP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
 			case SINGLEPLAYER:
@@ -255,6 +275,7 @@ int main(int argc, char *argv[]){
 		}
 
 		renderBoard_button(boardButtons, boardWidth, boardHeight);
+		renderGui(guiButtons);
 		SDL_RenderPresent(renderer);
 	}
 
