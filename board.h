@@ -29,9 +29,8 @@ class tile
 
 class board
 {
-    private:
-        int width, height;
     public:
+        int width, height;
         std::vector<piece> pieceList;
         std::vector<tile> tiles;
 
@@ -60,13 +59,15 @@ class board
         //if a piece is in the spot (x2,y2), then it must be moved or killed before moving another piece to (x2,y2)
         void movePiece(int x1, int y1, int x2, int y2)
         {
-            tiles[(y2*width)+x2].p = tiles[(y1*width)+x1].p;
-            tiles[(y1*width)+x1].p = 0;
+            if( (x1 != x2) || (y1 != y2) )
+            {
+                tiles[(y2*width)+x2].p = tiles[(y1*width)+x1].p;
+                tiles[(y1*width)+x1].p = 0;
+            }
         }
 
         void killPiece(int x, int y)
         {
-            
             pieceList[tiles[(y*width)+x].p].kill();
         }
 

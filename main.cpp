@@ -12,6 +12,7 @@
 #include "settings.h"
 #include "types.h"
 #include "board.h"
+#include "controller.h"
 #include "gui.h"
 
 SettingsList *g_settings;
@@ -238,11 +239,15 @@ int main(int argc, char *argv[]){
 				//renderBoard();
 				//renderPieces();
 				run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
-
+				testController(&board, &GAME_STATE);
 				break;
 
 			//console mode is for testing the game without using graphics
 			case CONSOLE_MODE:
+				break;
+
+			case QUIT_STATE:
+				run = 0;
 				break;
 
 			default:
