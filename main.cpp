@@ -231,18 +231,18 @@ int main(int argc, char *argv[]){
 	guiButtons.back().pressedColor = (color_t){0x00, 0x7F, 0x00};
 	guiButtons.back().releasedColor = (color_t){0x00, 0xBF, 0x00};
 	
-	// standardChessBoardInit(&board);
-	
 	while(run)
 	{
 		switch(GAME_STATE)
 		{
 			case MAIN_MENU:
-				// printChessBoard(&board);
+				
 				run = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
 				if (GAME_STATE == SINGLEPLAYER) {
 					std::cout << "Now in Singleplayer" << std::endl;
+					standardChessBoardInit(&board);
+					printChessBoard(&board);
 				}
 				else if (GAME_STATE == MULTIPLAYER) {
 					std::cout << "Now in Multiplayer" << std::endl;
@@ -256,9 +256,8 @@ int main(int argc, char *argv[]){
 			case SINGLEPLAYER:
 				// renderBoard_button(boardButtons, boardWidth, boardHeight);
 				// SDL_RenderPresent(renderer);
-				//renderBoard();
-				//renderPieces();
-				run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
+
+				//run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				testController(&board, &GAME_STATE);
 				break;
 

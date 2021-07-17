@@ -31,7 +31,7 @@ void testController(board* board, gameState* GAME_STATE)
     }
     if(!input.compare(0,4,"stop"))
     {
-        std::cout << "stopped" << std::endl;
-        *GAME_STATE = QUIT_STATE;
+        std::cout << "Now in main menu" << std::endl;
+        *GAME_STATE = MAIN_MENU;
     }
 }

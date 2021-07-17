@@ -75,6 +75,15 @@ class board
         {
             return(tiles[(y*width)+x].p);
         }
+
+        void reset()
+        {
+            for(int i = 0; i < (width*height); i++) 
+            {
+                tiles[i].p = 0;
+                pieceList.resize(1);
+            }
+        }
 };
 
 void standardChessBoardInit(board*);

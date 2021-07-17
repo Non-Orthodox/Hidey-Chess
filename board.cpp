@@ -5,6 +5,7 @@
 
 void standardChessBoardInit(board* board)
 {
+	board->reset();
 	board->addPiece(2,white,0,0);
 	board->addPiece(3,white,0,1);
 	board->addPiece(4,white,0,2);
