@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include "types.h"
 #include "basicVisuals.h"
+#include "log.h"
 
 int SDL_eventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* renderer)
 {
@@ -16,7 +17,7 @@ int SDL_eventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* renderer
 		std::cout << event->motion.x << " " << event->motion.y << std::endl;
 		break;
 	case SDL_MOUSEBUTTONDOWN:
-		std::cout << "mouseclick" << std::endl;
+		debug("mouseclick");
 		break;
 	case SDL_MOUSEBUTTONUP:
 		break;
@@ -70,7 +71,7 @@ void windowEventHandle(SDL_Event* event, SDL_Window* window, SDL_Renderer* rende
 		break;
 
 	default:
-		std::cout << "unhandled window event" << std::endl;
+		warning("Unhandled window event.");
 		break;
 	}
 }
@@ -168,14 +169,14 @@ int MM_EventHandle( SDL_Event* event,
 				break;
 	
 			default:
-				std::cout << "unhandled window event" << std::endl;
+				warning("Unhandled window event.");
 				break;
 			break;
 			}
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
-			std::cout << event->type << " not accounted for in SP handler" << std::endl;
+			warning("Type " + std::to_string(event->type) + " not accounted for in MM handler.");
 			break;
 		}
 	}
@@ -249,14 +250,14 @@ int MP_EventHandle( SDL_Event* event,
 				break;
 	
 			default:
-				std::cout << "unhandled window event" << std::endl;
+				warning("Unhandled window event.");
 				break;
 			break;
 			}
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
-			std::cout << event->type << " not accounted for in SP handler" << std::endl;
+			warning("Type " + std::to_string(event->type) + " not accounted for in MP handler.");
 			break;
 		}
 	}
@@ -351,14 +352,14 @@ int SP_EventHandle( SDL_Event* event,
 				break;
 	
 			default:
-				std::cout << "unhandled window event" << std::endl;
+				warning("Unhandled window event.");
 				break;
 			break;
 			}
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
-			std::cout << event->type << " not accounted for in SP handler" << std::endl;
+			warning("Type " + std::to_string(event->type) + " not accounted for in SP handler.");
 			break;
 		}
 	}

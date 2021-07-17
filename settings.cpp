@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <regex>
+#include "log.h"
 
 int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue) {
 	int error = 0;
@@ -31,14 +32,16 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			tempBool = !!std::stoi(value);
 		}
 		catch (std::invalid_argument& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to a bool. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
 		catch (std::out_of_range& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+			// std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
+			// 	<< value << "\" to a bool. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to a bool. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
@@ -62,14 +65,14 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			tempInt = std::stoi(value);
 		}
 		catch (std::invalid_argument& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to an int. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
 		catch (std::out_of_range& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to an int. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to an int. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
@@ -93,14 +96,14 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 			tempFloat = std::stof(value);
 		}
 		catch (std::invalid_argument& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to a float. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
 		catch (std::out_of_range& e) {
-			std::cerr << "Could not convert option \"" << setting->name << "\"'s value \""
-				<< value << "\" to a float. Ignoring option. Exception: " << e.what() << std::endl;
+			error("Could not convert option \"" + setting->name + "\"'s value \""
+				+ value + "\" to a float. Ignoring option. Exception: " + std::string(e.what()));
 			error = 1;
 			break;
 		}
@@ -120,7 +123,7 @@ int settings_setFromString(Setting *setting, const std::string value, std::strin
 		}
 		break;
 	default:
-		std::cerr << "Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
+		critical_error("Invalid type " + std::to_string(setting->type) + " for setting \"" + setting->name + "\".");
 		error = 2;
 	}
 	
@@ -174,7 +177,7 @@ int settings_runSubcommands(std::string *line) {
 		}
 		
 		if (parenLevel > 0) {
-			std::cerr << "Unmatched parentheses. Parenthesis level: " << parenLevel << std::endl;
+			error("Unmatched parentheses. Parenthesis level: " + std::to_string(parenLevel));
 			error = 2;
 			break;
 		}
@@ -213,7 +216,7 @@ int settings_runSubcommands(std::string *line) {
 			var = g_settings->find(varName);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "(settings_runSubcommands) Could not find variable \"" << varName << "\"." << std::endl;
+			error("Could not find variable \"" + varName + "\".");
 			error = 1;
 			break;
 		}
@@ -356,7 +359,7 @@ int settings_callback_set(Setting *setting) {
 		var = g_settings->find(varName);
 	}
 	catch (std::logic_error& e) {
-		std::cerr << "(settings_callback_set) Could not find variable \"" << varName << "\"." << std::endl;
+		error("Could not find variable \"" + varName + "\".");
 		error = 1;
 		return error;
 	}
@@ -400,12 +403,12 @@ int settings_callback_print(Setting *setting) {
 		var = g_settings->find(varName);
 	}
 	catch (std::logic_error& e) {
-		std::cerr << "(settings_callback_set) Could not find variable \"" << varName << "\"." << std::endl;
+		error("Could not find variable \"" + varName + "\".");
 		error = 1;
 		return error;
 	}
 	
-	std::cout << varName << " (";
+	std::cout << varName << COLOR_BLUE " (";
 	
 	switch (var->type) {
 	case settingsType_boolean:
@@ -421,7 +424,7 @@ int settings_callback_print(Setting *setting) {
 		std::cout << "string): \"" << var->getString() << "\"";
 		break;
 	default:
-		std::cerr << "(settings_callback_print) Invalid type " << setting->type << " for setting \"" << setting->name << "\"." << std::endl;
+		critical_error("Invalid type " + std::to_string(setting->type) + " for setting \"" + setting->name + "\".");
 		error = 2;
 	}
 	
@@ -483,7 +486,7 @@ int settings_callback_equal(Setting *setting) {
 	space1 = line.find_first_of(' ', space0);
 	
 	if (space0 == std::string::npos) {
-		std::cerr << "(settings_callback_equal) Function `equal` requires two arguments. Only one was provided." << std::endl;
+		error("Function `equal` requires two arguments. Only one was provided.");
 		error = 2;
 		return error;
 	}
@@ -499,7 +502,7 @@ int settings_callback_equal(Setting *setting) {
 			value0 = g_settings->find(value0_name);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "(settings_callback_set) Could not find variable \"" << value0_name << "\"." << std::endl;
+			error("Could not find variable \"" + value0_name + "\".");
 			error = 1;
 			return error;
 		}
@@ -514,7 +517,7 @@ int settings_callback_equal(Setting *setting) {
 			value1 = g_settings->find(value1_name);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "(settings_callback_set) Could not find variable \"" << value1_name << "\"." << std::endl;
+			error("Could not find variable \"" + value1_name + "\".");
 			error = 1;
 			return error;
 		}
@@ -575,7 +578,7 @@ int settings_callback_equal(Setting *setting) {
 			}
 			break;
 		default:
-			std::cerr << "Invalid type " << value0->type << " for settings \"" << value0->name << "\" and \"" << value1->name << "\"." << std::endl;
+			error("Invalid type " + std::to_string(value0->type) + " for settings \"" + value0->name + "\" and \"" + value1->name + "\".");
 			setting->set("0");
 			error = 2;
 			goto cleanup_l;
@@ -622,7 +625,7 @@ int settings_callback_notEqual(Setting *setting) {
 	space1 = line.find_first_of(' ', space0);
 	
 	if (space0 == std::string::npos) {
-		std::cerr << "(settings_callback_equal) Function `equal` requires two arguments. Only one was provided." << std::endl;
+		error("Function `equal` requires two arguments. Only one was provided.");
 		error = 2;
 		return error;
 	}
@@ -638,7 +641,7 @@ int settings_callback_notEqual(Setting *setting) {
 			value0 = g_settings->find(value0_name);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "(settings_callback_set) Could not find variable \"" << value0_name << "\"." << std::endl;
+			error("Could not find variable \"" + value0_name + "\".");
 			error = 1;
 			return error;
 		}
@@ -653,7 +656,7 @@ int settings_callback_notEqual(Setting *setting) {
 			value1 = g_settings->find(value1_name);
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "(settings_callback_set) Could not find variable \"" << value1_name << "\"." << std::endl;
+			error("Could not find variable \"" + value1_name + "\".");
 			error = 1;
 			return error;
 		}
@@ -714,7 +717,7 @@ int settings_callback_notEqual(Setting *setting) {
 			}
 			break;
 		default:
-			std::cerr << "Invalid type " << value0->type << " for settings \"" << value0->name << "\" and \"" << value1->name << "\"." << std::endl;
+			error("Invalid type " + std::to_string(value0->type) + " for settings \"" + value0->name + "\" and \"" + value1->name + "\".");
 			setting->set("1");
 			error = 2;
 			goto cleanup_l;

@@ -14,6 +14,7 @@
 #include "board.h"
 #include "controller.h"
 #include "gui.h"
+#include "log.h"
 
 SettingsList *g_settings;
 
@@ -107,7 +108,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 		}
 		catch (std::logic_error& e) {
 			// It's really just fine.
-			std::cerr << "(main_parseCommandLineArguments) Couldn't find setting \"" << var << "\"." << std::endl;
+			error("Couldn't find setting \"" + var + "\".");
 			continue;
 		}
 		
@@ -132,14 +133,14 @@ int main(int argc, char *argv[]){
 		//Initializing SDL
 		if (SDL_Init(SDL_INIT_VIDEO) != 0)
 		{
-			std::cerr << "SDL failed to initialize" << SDL_GetError() << std::endl;
+			critical_error("SDL failed to initialize | SDL_Error " + std::string(SDL_GetError()));
 			return 1; //later on use an exception
 		}
 	
 		//Initializing SDL_image
 		if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) //can add additional image file types here
 		{
-			std::cerr << "SDL_image failed to initialize" << std::endl;
+			critical_error("SDL_image failed to initialize");
 			return 1; //later on use an exception
 		}
 		
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]){
 		window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
 		if (window == nullptr) 
 		{
-			std::cerr << "Error: Window could not be created | SDL_Error " << SDL_GetError() << std::endl;
+			critical_error("Window could not be created | SDL_Error " + std::string(SDL_GetError()));
 			return 1;
 		}
 	
@@ -155,7 +156,8 @@ int main(int argc, char *argv[]){
 		renderer = SDL_CreateRenderer(window, -1, 0);
 		if (renderer == nullptr) 
 		{
-			std::cerr << "Error: Renderer could not be created | SDL_Error " << SDL_GetError() << std::endl;
+			// std::cerr << "Error:  << std::endl;
+			critical_error("Renderer could not be created | SDL_Error " + std::string(SDL_GetError()));
 			return 1;
 		}
 		
@@ -249,12 +251,12 @@ int main(int argc, char *argv[]){
 				run = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
 				if (GAME_STATE == SINGLEPLAYER) {
-					std::cout << "Now in Singleplayer" << std::endl;
+					debug("Now in Singleplayer");
 					standardChessBoardInit(&board);
 					printChessBoard(&board);
 				}
 				else if (GAME_STATE == MULTIPLAYER) {
-					std::cout << "Now in Multiplayer" << std::endl;
+					debug("Now in Multiplayer");
 				}
 				break;
 

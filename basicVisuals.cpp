@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include "types.h"
 #include "settings.h"
+#include "log.h"
 
 //x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
 void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1Col, color_t p2Col)
@@ -55,7 +56,7 @@ void renderBoard_button(std::vector<Button> boardButtons, const int width, const
 				boardButtons[width * y + x].draw();
 			}
 			catch (std::logic_error& e) {
-				std::cerr << "Error while drawing board." << std::endl;
+				error("Error while drawing board.");
 			}
 		}
 	}
@@ -69,7 +70,7 @@ void renderGui(std::vector<Button> guiButtons)
 			guiButtons[i].draw();
 		}
 		catch (std::logic_error& e) {
-			std::cerr << "Error while drawing GUI." << std::endl;
+			error("Error while drawing GUI.");
 		}
 	}
 }

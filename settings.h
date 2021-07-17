@@ -174,6 +174,7 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY(board_width, 8) \
 	ENTRY(board_height, 8) \
 	ENTRY(disable_sdl, false) \
+	ENTRY(log_level, 1) \
 	\
 	ENTRY(set, "") \
 	ENTRY(print, "") \
@@ -186,6 +187,7 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY('p', peer_network_port) \
 	ENTRY('n', network_port) \
 	ENTRY('s', disable_sdl) \
+	ENTRY('l', log_level) \
 
 #define SETTINGS_CALLBACKS_LIST \
 	ENTRY(set, settings_callback_set) \

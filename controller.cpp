@@ -1,7 +1,9 @@
+
 #include "controller.h"
-#include "types.h"
 #include <iostream>
 #include <string>
+#include "types.h"
+#include "log.h"
 
 void testController(board* board, gameState* GAME_STATE)
 {
@@ -31,7 +33,7 @@ void testController(board* board, gameState* GAME_STATE)
     }
     if(!input.compare(0,4,"stop"))
     {
-        std::cout << "Now in main menu" << std::endl;
+        debug("Now in main menu.");
         *GAME_STATE = MAIN_MENU;
     }
 }
