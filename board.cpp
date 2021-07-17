@@ -39,6 +39,9 @@ void printChessBoard(board* board)
 {
 	piece* temp;
 	int index;
+
+	std::cout << std::endl;
+
     for(int i = 0; i < 8; i++) 
     {
         for(int j = 0; j < 8; j++) 
