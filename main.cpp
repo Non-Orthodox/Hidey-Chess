@@ -123,35 +123,42 @@ int main(int argc, char *argv[]){
 	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
 	const int boardWidth = (*g_settings)[settingEnum_board_width]->getInt();
 	const int boardHeight = (*g_settings)[settingEnum_board_height]->getInt();
-
-	//Initializing SDL
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-	{
-		std::cerr << "SDL failed to initialize" << SDL_GetError() << std::endl;
-		return 1; //later on use an exception
-	}
-
-	//Initializing SDL_image
-	if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) //can add additional image file types here
-	{
-		std::cerr << "SDL_image failed to initialize" << std::endl;
-		return 1; //later on use an exception
-	}
 	
-	//Creating Window
-	SDL_Window* window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
-	if (window == nullptr) 
-	{
-		std::cerr << "Error: Window could not be created | SDL_Error " << SDL_GetError() << std::endl;
-		return 1;
-	}
+	SDL_Window* window = nullptr;
+	SDL_Renderer* renderer = nullptr;
 
-	//Creating Renderer
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-	if (renderer == nullptr) 
-	{
-		std::cerr << "Error: Renderer could not be created | SDL_Error " << SDL_GetError() << std::endl;
-		return 1;
+	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+
+		//Initializing SDL
+		if (SDL_Init(SDL_INIT_VIDEO) != 0)
+		{
+			std::cerr << "SDL failed to initialize" << SDL_GetError() << std::endl;
+			return 1; //later on use an exception
+		}
+	
+		//Initializing SDL_image
+		if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) //can add additional image file types here
+		{
+			std::cerr << "SDL_image failed to initialize" << std::endl;
+			return 1; //later on use an exception
+		}
+		
+		//Creating Window
+		window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
+		if (window == nullptr) 
+		{
+			std::cerr << "Error: Window could not be created | SDL_Error " << SDL_GetError() << std::endl;
+			return 1;
+		}
+	
+		//Creating Renderer
+		renderer = SDL_CreateRenderer(window, -1, 0);
+		if (renderer == nullptr) 
+		{
+			std::cerr << "Error: Renderer could not be created | SDL_Error " << SDL_GetError() << std::endl;
+			return 1;
+		}
+		
 	}
 
 	//Setting team colors
@@ -196,7 +203,9 @@ int main(int argc, char *argv[]){
 	Setting *tempSetting;
 	SDL_Rect tempRect;
 	
-	SDL_GetWindowSize(window, &winWidth, &winHeight);
+	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+		SDL_GetWindowSize(window, &winWidth, &winHeight);
+	}
 	
 	tempRect.w = winHeight/12;
 	tempRect.h = winHeight/12;
@@ -273,17 +282,21 @@ int main(int argc, char *argv[]){
 				break;
 		}
 
-		renderBoard_button(boardButtons, boardWidth, boardHeight);
-		renderGui(guiButtons);
-		SDL_RenderPresent(renderer);
+		if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+			renderBoard_button(boardButtons, boardWidth, boardHeight);
+			renderGui(guiButtons);
+			SDL_RenderPresent(renderer);
+		}
 	}
 
 	//Destroying and Quitting
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
-	window = nullptr;
-	IMG_Quit();
-	SDL_Quit();
+	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+		SDL_DestroyRenderer(renderer);
+		SDL_DestroyWindow(window);
+		window = nullptr;
+		IMG_Quit();
+		SDL_Quit();
+	}
 
 	return 0;
 }
