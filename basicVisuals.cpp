@@ -60,3 +60,16 @@ void renderBoard_button(std::vector<Button> boardButtons, const int width, const
 		}
 	}
 }
+
+//x and y are the center coordinates of the board. p1Col and p2Col are the two different tile colors
+void renderGui(std::vector<Button> guiButtons)
+{
+	for (size_t i = 0; i < guiButtons.size(); i++) {
+		try {
+			guiButtons[i].draw();
+		}
+		catch (std::logic_error& e) {
+			std::cerr << "Error while drawing GUI." << std::endl;
+		}
+	}
+}

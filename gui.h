@@ -7,13 +7,18 @@
 #include "settings.h"
 #include "types.h"
 
+struct buttonState_t {
+	bool value;
+	bool transitioned;
+};
+
 class Button {
 private:
-	bool currentlyPressed = false;
-	Setting *setting;
 	SDL_Rect rect;
 	SDL_Renderer *renderer;
 public:
+	bool currentlyPressed = false;
+	Setting *setting;
 	// Greyed out and unpressable if false.
 	bool active = true;
 	// Toggle or momentary contact.
@@ -70,22 +75,27 @@ public:
 	Side effects:
 	;   Each button presse and release will run two callbacks.
 	*/
-	bool check(SDL_MouseButtonEvent mouseButtonEvent) {
+	buttonState_t check(SDL_MouseButtonEvent mouseButtonEvent) {
 		int error = 0;
 	
 		bool mouseIsPressed = false;
+		bool transitioned;
 		
 		if ((mouseButtonEvent.x < rect.x) || (mouseButtonEvent.x > rect.x + rect.w) || (mouseButtonEvent.y < rect.y) || (mouseButtonEvent.y > rect.y + rect.h)) {
-			if (toggle) {
-				return toggleState;
-			}
-			return false;
+			// if (toggle) {
+			// 	return toggleState;
+			// }
+			// return false;
+			mouseIsPressed = toggleOnUp;
+			transitioned = false;
 		}
-		
-		for (int i = 0; i < 5; i++) {
-			if (((1<<i) & buttonMask) && (mouseButtonEvent.button == i)) {
-				mouseIsPressed = mouseButtonEvent.state;
+		else {
+			for (int i = 0; i < 5; i++) {
+				if (((1<<i) & buttonMask) && (mouseButtonEvent.button == i)) {
+					mouseIsPressed = mouseButtonEvent.state;
+				}
 			}
+			transitioned = mouseIsPressed ^ currentlyPressed;
 		}
 		
 		// First time mouse is pressed.
@@ -123,7 +133,7 @@ public:
 		
 		currentlyPressed = mouseIsPressed;
 		
-		return toggleState;
+		return (buttonState_t) {toggleState, transitioned};
 	}
 };
 
