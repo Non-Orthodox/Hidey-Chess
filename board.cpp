@@ -14,6 +14,11 @@ void standardChessBoardInit(board* board)
 	board->addPiece(3,white,0,6);
 	board->addPiece(2,white,0,7);
 
+	for(int i = 0; i < 8; i++)
+	{
+		board->addPiece(1,white,1,i);
+	}
+
 	board->addPiece(2,black,7,0);
 	board->addPiece(3,black,7,1);
 	board->addPiece(4,black,7,2);
@@ -22,22 +27,29 @@ void standardChessBoardInit(board* board)
 	board->addPiece(4,black,7,5);
 	board->addPiece(3,black,7,6);
 	board->addPiece(2,black,7,7);
+
+	for(int i = 0; i < 8; i++)
+	{
+		board->addPiece(1,black,6,i);
+	}
 }
 
 void printChessBoard(board* board)
 {
 	piece* temp;
-    std::cout << std::endl;
+	int index;
     for(int i = 0; i < 8; i++) 
     {
         for(int j = 0; j < 8; j++) 
         {
-			temp = board->getTilePiece(j,i);
+			index = board->getTilePiece(j,i);
+			temp = &board->pieceList[index];
             if(temp->team == white)
                 std::cout << "w" << temp->type << " ";
-            else
+            else if(temp->team == black)
                 std::cout << "b" << temp->type << " ";
-            
+            else
+				std::cout << "n" << temp->type << " ";
         }
         std::cout << std::endl << std::endl;
     }

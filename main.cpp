@@ -257,18 +257,8 @@ int main(int argc, char *argv[]){
 				// SDL_RenderPresent(renderer);
 				//renderBoard();
 				//renderPieces();
-				// while(GAME_STATE == SINGLEPLAYER)
-				// {
-				// while (SDL_PollEvent(&event)) 
-				// {
 				run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
-				// }
 
-				// 	if(run == 0)
-				// 	{
-				// 		break;
-				// 	}
-				// }
 				break;
 
 			//console mode is for testing the game without using graphics
