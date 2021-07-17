@@ -27,18 +27,22 @@
 #define B_COLOR_WHITE     "\x1B[47m"
 
 /* log_level
-0   info
-1   warning
-2   error
-3   critical error
-4   nothing
+0   debug
+1   info
+2   warning
+3   error
+4   critical error
+5   nothing
 */
 
+// Don't use these.
 void log_debug(const char function[], const int line, std::string m);
 void log_info(const char function[], const int line, std::string m);
 void log_warning(const char function[], const int line, std::string m);
 void log_error(const char function[], const int line, std::string m);
 void log_critical_error(const char function[], const int line, std::string m);
+
+// Use these.
 #define debug(m) log_debug(__func__, __LINE__, m)
 #define info(m) log_info(__func__, __LINE__, m)
 #define warning(m) log_warning(__func__, __LINE__, m)
