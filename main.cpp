@@ -1,3 +1,5 @@
+#include "duck-lisp/DuckLib/core.h"
+#include "duck-lisp/DuckLib/memory.h"
 #include <cstddef>
 #define SDL_MAIN_HANDLED
 
@@ -17,8 +19,27 @@
 #include "controller.h"
 #include "gui.h"
 #include "log.h"
+extern "C" {
+#include "duck-lisp/duckLisp.h"
+}
 
-SettingsList* g_settings;
+SettingsList *g_settings;
+duckLisp_t g_duckLisp;
+
+int main_initDuckLisp(void) {
+	int e = 0;
+
+	void *hunk = malloc((*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t));
+	if (!hunk) {
+		e = dl_error_outOfMemory;
+		return e;
+	}
+
+	e = duckLisp_init(&g_duckLisp,
+					  hunk,
+					  (*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t));
+	return e;
+}
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 

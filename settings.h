@@ -284,6 +284,7 @@ extern SettingsList *g_settings;
 	ENTRY(board_height, 8) \
 	ENTRY(disable_sdl, false) \
 	ENTRY(log_level, 0) \
+	ENTRY(compiler_heap_size, 1000000) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('a', peer_ip_address) \
