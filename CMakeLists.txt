@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS_RELEASE_INIT "-Wall")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 # Executable
-add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp basicVisuals.cpp board.cpp controller.cpp settings.cpp log.cpp)
+add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp basicVisuals.cpp board.cpp controller.cpp log.cpp)
 
 
 find_package(SDL2 REQUIRED)
