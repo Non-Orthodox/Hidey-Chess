@@ -12,6 +12,7 @@ Normal chess over the network with camouflaged pieces.
 ## Building
 
 ```bash
+git submodule update --init --recursive
 mkdir build && cd build
 cmake ..
 cmake --build .
