@@ -107,15 +107,13 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 		// Find setting.
 		try {
 			setting = (*g_settings)[var];
+			setting->setFromString(value);
 		}
 		catch (std::logic_error& e) {
 			// It's really just fine.
 			error("Couldn't find setting \"" + var + "\".");
 			continue;
 		}
-		
-		// Set setting.
-		/* settings_setFromString(setting, value, NULL); */
 	}
 }
 

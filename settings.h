@@ -7,7 +7,6 @@
 #include <string>
 #include <stdexcept>
 #include <map>
-// #include "array.h"
 
 enum settingsType_t {
 	settingsType_boolean,
@@ -146,6 +145,109 @@ public:
 			}
 		}
 		return *this->valueString;
+	}
+	int setFromString(const std::string value) {
+		int e = 0;
+	
+		bool tempBool = false;
+		int tempInt = 0;
+		float tempFloat = 0.0;
+		
+		switch (this->type) {
+		case settingsType_boolean:
+			if (value.length() == 0) {
+				try {
+					std::to_string(this->set(true));
+					return 0;
+				}
+				catch (std::logic_error& e) {
+					return 2;
+				}
+			}
+			try {
+				// Mainly for fun.
+				tempBool = !!std::stoi(value);
+			}
+			catch (std::invalid_argument& e) {
+				return 1;
+			}
+			catch (std::out_of_range& e) {
+				return 1;
+			}
+			try {
+				std::to_string(this->set(tempBool));
+				return 0;
+			}
+			catch (std::logic_error& e) {
+				return 2;
+			}
+			break;
+		case settingsType_integer:
+			if (value.length() == 0) {
+				try {
+					 std::to_string(this->set(1));
+					 return 0;
+				}
+				catch (std::logic_error& e) {
+					return 2;
+				}
+			}
+			try {
+				tempInt = std::stoi(value);
+			}
+			catch (std::invalid_argument& e) {
+				return 1;
+			}
+			catch (std::out_of_range& e) {
+				return  1;
+			}
+			try {
+				std::to_string(this->set(tempInt));
+				return 0;
+			}
+			catch (std::logic_error& e) {
+				return 2;
+			}
+			break;
+		case settingsType_float:
+			if (value.length() == 0) {
+				try {
+					std::to_string(this->set(1.0f));
+					return 0;
+				}
+				catch (std::logic_error& e) {
+					return 2;
+				}
+			}
+			try {
+				tempFloat = std::stof(value);
+			}
+			catch (std::invalid_argument& e) {
+				return 1;
+			}
+			catch (std::out_of_range& e) {
+				return 1;
+			}
+			try {
+				std::to_string(this->set(tempFloat));
+				return 0;
+			}
+			catch (std::logic_error& e) {
+				return 2;
+			}
+			break;
+		case settingsType_string:
+			try {
+				this->set(value);
+				return 0;
+			}
+			catch (std::logic_error& e) {
+				return 2;
+			}
+			break;
+		default:
+			return 2;
+		}
 	}
 };
 
