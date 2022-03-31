@@ -1,0 +1,3 @@
+[submodule "duck-lisp"]
+	path = duck-lisp
+	url = https://github.com/oitzujoey/duck-lisp
