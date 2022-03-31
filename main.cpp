@@ -1,9 +1,11 @@
+#include <cstddef>
 #define SDL_MAIN_HANDLED
 
 #include <iostream>
 #include <string>
 #include <stdexcept>
 #include <vector>
+#include <map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDLevents.h"
@@ -16,7 +18,7 @@
 #include "gui.h"
 #include "log.h"
 
-SettingsList *g_settings;
+SettingsList* g_settings;
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
@@ -24,9 +26,9 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	g_settings = new SettingsList();
 	
 	// Register settings.
-#   define ENTRY(ENTRY_name, ENTRY_value) g_settings->push(Setting(#ENTRY_name, ENTRY_value));
-	SETTINGS_LIST
-#   undef ENTRY
+#define ENTRY(ENTRY_name, ENTRY_value) g_settings->insert(#ENTRY_name, ENTRY_value);
+		SETTINGS_LIST
+#undef ENTRY
 
 	// Define option aliases.
 #   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
@@ -104,7 +106,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 		
 		// Find setting.
 		try {
-			setting = g_settings->find(var);
+			setting = (*g_settings)[var];
 		}
 		catch (std::logic_error& e) {
 			// It's really just fine.
@@ -113,7 +115,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 		}
 		
 		// Set setting.
-		settings_setFromString(setting, value, NULL);
+		/* settings_setFromString(setting, value, NULL); */
 	}
 }
 

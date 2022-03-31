@@ -2,9 +2,11 @@
 #define SETTINGS_H
 
 #include <assert.h>
+#include <cstddef>
 #include <vector>
 #include <string>
 #include <stdexcept>
+#include <map>
 // #include "array.h"
 
 enum settingsType_t {
@@ -32,13 +34,25 @@ public:
 		this->type = settingsType_boolean;
 		this->valueBool = value;
 	}
+	Setting(bool value) {
+		this->type = settingsType_boolean;
+		this->valueBool = value;
+	}
 	Setting(std::string name, int value) {
 		this->name = name;
 		this->type = settingsType_integer;
 		this->valueInt = value;
 	}
+	Setting(int value) {
+		this->type = settingsType_integer;
+		this->valueInt = value;
+	}
 	Setting(std::string name, float value) {
 		this->name = name;
+		this->type = settingsType_float;
+		this->valueFloat = value;
+	}
+	Setting(float value) {
 		this->type = settingsType_float;
 		this->valueFloat = value;
 	}
@@ -48,8 +62,18 @@ public:
 		this->valueString = new std::string();
 		*this->valueString = value;
 	}
+	Setting(std::string value) {
+		this->type = settingsType_string;
+		this->valueString = new std::string();
+		*this->valueString = value;
+	}
 	Setting(std::string name, const char *value) {
 		this->name = name;
+		this->type = settingsType_string;
+		this->valueString = new std::string();
+		*this->valueString = value;
+	}
+	Setting(const char *value) {
 		this->type = settingsType_string;
 		this->valueString = new std::string();
 		*this->valueString = value;
@@ -128,42 +152,25 @@ public:
 class SettingsList {
 private:
 	std::vector<Setting> array;
+	std::map<std::string, ptrdiff_t> map;
 public:
-	void push(Setting value) {
+	void insert(std::string name, Setting value) {
+		map.insert(std::pair<std::string, ptrdiff_t>(name, array.size()));
 		array.push_back(value);
 	}
 	Setting *operator[](std::ptrdiff_t index) {
 		return &array[index];
 	}
-	Setting *find(std::string name) {
-		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
-			if (array[i].name == name) {
-				return &array[i];
-			}
-		}
-		throw std::logic_error("SettingsList::find");
+	Setting *operator[](std::string name) {
+		return &array[map.at(name)];
 	}
-	bool exists(std::string name) {
-		for (std::ptrdiff_t i = 0; i < array.size(); i++) {
-			if (array[i].name == name) {
-				return true;
-			}
-		}
-		return false;
+	Setting *find(std::string name) {
+		return &array[map.at(name)];
 	}
 };
 
 
 extern SettingsList *g_settings;
-
-int settings_setFromString(Setting *setting, const std::string value, std::string *returnValue);
-
-int settings_callback_set(Setting *setting);
-int settings_callback_print(Setting *setting);
-int settings_callback_echo(Setting *setting);
-int settings_callback_chain(Setting *setting);
-int settings_callback_equal(Setting *setting);
-int settings_callback_notEqual(Setting *setting);
 
 /* Settings */
 
@@ -175,12 +182,6 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY(board_height, 8) \
 	ENTRY(disable_sdl, false) \
 	ENTRY(log_level, 0) \
-	\
-	ENTRY(set, "") \
-	ENTRY(print, "") \
-	ENTRY(echo, "") \
-	ENTRY(eq, "") \
-	ENTRY(neq, "")
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('a', peer_ip_address) \
@@ -190,11 +191,6 @@ int settings_callback_notEqual(Setting *setting);
 	ENTRY('l', log_level) \
 
 #define SETTINGS_CALLBACKS_LIST \
-	ENTRY(set, settings_callback_set) \
-	ENTRY(print, settings_callback_print) \
-	ENTRY(echo, settings_callback_echo) \
-	ENTRY(eq, settings_callback_equal) \
-	ENTRY(neq, settings_callback_notEqual)
 
 #define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
 enum settingEnum_t {
