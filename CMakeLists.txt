@@ -24,7 +24,15 @@ option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 add_subdirectory(duck-lisp build-lisp)
 
 # Executable
-add_executable(Hidey-Chess main.cpp piece.cpp SDLevents.cpp basicVisuals.cpp board.cpp controller.cpp log.cpp)
+add_executable(Hidey-Chess
+  main.cpp
+  piece.cpp
+  SDLevents.cpp
+  basicVisuals.cpp
+  board.cpp
+  controller.cpp
+  log.cpp
+  duck-lisp.cpp)
 
 
 find_package(SDL2 REQUIRED)

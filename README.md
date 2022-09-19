@@ -7,6 +7,8 @@ Normal chess over the network with camouflaged pieces.
 ```text
     SDL2
     SDL2_image
+    duck-lisp
+        DuckLib
 ```
 
 ## Building

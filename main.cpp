@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
+#include <memory>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDLevents.h"
@@ -18,52 +19,9 @@
 #include "controller.h"
 #include "gui.h"
 #include "log.h"
-extern "C" {
-#include "duck-lisp/DuckLib/memory.h"
-#include "duck-lisp/duckLisp.h"
-}
+#include "duck-lisp.hpp"
 
 SettingsList *g_settings;
-duckLisp_t g_duckLisp;
-
-int main_initDuckLisp(void) {
-	int e = 0;
-
-	size_t hunk_size = (*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t);
-	void *hunk = malloc(hunk_size);
-	if (!hunk) {
-		e = dl_error_outOfMemory;
-		return e;
-	}
-
-	dl_memoryAllocation_t *memoryAllocation = new dl_memoryAllocation_t;
-	e = dl_memory_init(memoryAllocation, hunk, hunk_size, dl_memoryFit_best);
-	if (e) {
-		free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
-		delete g_duckLisp.memoryAllocation;
-		return e;
-	}
-
-	g_duckLisp.memoryAllocation = memoryAllocation;
-
-	e = duckLisp_init(&g_duckLisp);
-	if (e) {
-		free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
-		delete g_duckLisp.memoryAllocation;
-		return e;
-	}
-
-	return e;
-}
-
-int main_quitDuckLisp(void) {
-	int e = 0;
-
-	free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
-	delete g_duckLisp.memoryAllocation;
-
-	return e;
-}
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
@@ -165,7 +123,10 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 int main(int argc, char *argv[]){
 
 	main_parseCommandLineArguments(argc, argv);
-	
+
+	std::shared_ptr<DuckLisp> g_duckLisp(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
+	                                                  * sizeof(dl_uint8_t)));
+
 	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
 	const int boardWidth = (*g_settings)[settingEnum_board_width]->getInt();
 	const int boardHeight = (*g_settings)[settingEnum_board_height]->getInt();
