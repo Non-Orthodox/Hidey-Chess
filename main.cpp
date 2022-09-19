@@ -1,8 +1,6 @@
-#include "duck-lisp/DuckLib/core.h"
-#include "duck-lisp/DuckLib/memory.h"
-#include <cstddef>
 #define SDL_MAIN_HANDLED
 
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <stdexcept>
@@ -11,6 +9,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDLevents.h"
+#include "defer.hpp"
 #include "piece.h"
 #include "basicVisuals.h"
 #include "settings.h"
@@ -20,6 +19,7 @@
 #include "gui.h"
 #include "log.h"
 extern "C" {
+#include "duck-lisp/DuckLib/memory.h"
 #include "duck-lisp/duckLisp.h"
 }
 
@@ -29,15 +29,39 @@ duckLisp_t g_duckLisp;
 int main_initDuckLisp(void) {
 	int e = 0;
 
-	void *hunk = malloc((*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t));
+	size_t hunk_size = (*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t);
+	void *hunk = malloc(hunk_size);
 	if (!hunk) {
 		e = dl_error_outOfMemory;
 		return e;
 	}
 
-	e = duckLisp_init(&g_duckLisp,
-					  hunk,
-					  (*g_settings)[settingEnum_compiler_heap_size]->getInt() * sizeof(dl_uint8_t));
+	dl_memoryAllocation_t *memoryAllocation = new dl_memoryAllocation_t;
+	e = dl_memory_init(memoryAllocation, hunk, hunk_size, dl_memoryFit_best);
+	if (e) {
+		free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
+		delete g_duckLisp.memoryAllocation;
+		return e;
+	}
+
+	g_duckLisp.memoryAllocation = memoryAllocation;
+
+	e = duckLisp_init(&g_duckLisp);
+	if (e) {
+		free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
+		delete g_duckLisp.memoryAllocation;
+		return e;
+	}
+
+	return e;
+}
+
+int main_quitDuckLisp(void) {
+	int e = 0;
+
+	free(g_duckLisp.memoryAllocation->memory); g_duckLisp.memoryAllocation->memory = nullptr;
+	delete g_duckLisp.memoryAllocation;
+
 	return e;
 }
 
@@ -77,10 +101,10 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	std::string arg;
 	std::string var;
 	std::string value;
-	int equalsIndex = 0;
-	bool tempBool = false;
-	int tempInt = 0;
-	float tempFloat = 0.0;
+	ptrdiff_t equalsIndex = 0;
+	// bool tempBool = false;
+	// int tempInt = 0;
+	// float tempFloat = 0.0;
 	Setting *setting;
 	for (int i = 0; i < argc; i++) {
 		arg = argv[i];
@@ -100,12 +124,12 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 			
 			equalsIndex = arg.find_first_of('=');
 			var = arg.substr(0, equalsIndex);
-			
-			if (equalsIndex == std::string::npos) {
+
+			if ((size_t) equalsIndex == std::string::npos) {
 				value = "";
 			}
 			else {
-				if (arg.length() <= equalsIndex + 1) {
+				if (arg.length() <= (size_t) equalsIndex + 1) {
 					continue;
 				}
 				value = arg.substr(equalsIndex + 1);
@@ -117,7 +141,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 			value = arg.substr(1);
 			
 			// Find setting for single character alias.
-			for (std::ptrdiff_t j = 0; j < sizeof(letterOptions)/sizeof(char); j++) {
+			for (std::ptrdiff_t j = 0; (size_t) j < sizeof(letterOptions)/sizeof(char); j++) {
 				if (letterOptions[j] == var[0]) {
 					var = optionsAliases[j];
 					break;
@@ -244,8 +268,12 @@ int main(int argc, char *argv[]){
 			// Toggle on button release.
 			boardButtons.back().toggleOnUp = false;
 			// Colors.
-			boardButtons.back().pressedColor = ((x ^ y) & 1) ? (color_t){0xBF, 0xBF, 0xBF} : (color_t) {0x40, 0x40, 0x40};
-			boardButtons.back().releasedColor = ((x ^ y) & 1) ? (color_t){0xFF, 0xFF, 0xFF} : (color_t) {0x00, 0x00, 0x00};
+			const color_t colorWhitePressed = {0xBF, 0xBF, 0xBF};
+			const color_t colorBlackPressed = {0x40, 0x40, 0x40};
+			const color_t colorWhiteReleased = {0xFF, 0xFF, 0xFF};
+			const color_t colorBlackReleased = {0x00, 0x00, 0x00};
+			boardButtons.back().pressedColor = ((x ^ y) & 1) ? colorWhitePressed : colorBlackPressed;
+			boardButtons.back().releasedColor = ((x ^ y) & 1) ? colorWhiteReleased : colorBlackReleased;
 		}
 	}
 	
@@ -253,15 +281,15 @@ int main(int argc, char *argv[]){
 	tempRect.x = 50;
 	tempRect.y = 50;
 	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
-	guiButtons.back().pressedColor = (color_t){0x00, 0x7F, 0x00};
-	guiButtons.back().releasedColor = (color_t){0x00, 0xBF, 0x00};
+	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
 	
 	tempSetting = new Setting("multiplayer", false);
 	tempRect.x = 50;
 	tempRect.y = 150;
 	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
-	guiButtons.back().pressedColor = (color_t){0x00, 0x7F, 0x00};
-	guiButtons.back().releasedColor = (color_t){0x00, 0xBF, 0x00};
+	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
 	
 	while(run)
 	{

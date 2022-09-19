@@ -9,6 +9,7 @@
 void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1Col, color_t p2Col)
 {
 	int error;
+	(void) error;
 	SDL_Rect rect;
 	bool p1Tile = false;
 	rect.h = rect.w = tileSize;
@@ -23,10 +24,8 @@ void renderBoard(SDL_Renderer* renderer, int x, int y, int tileSize, color_t p1C
 			p1Tile = !p1Tile;
 
 			//choose color
-			if(p1Tile)
-				error = SDL_SetRenderDrawColor(renderer, p1Col.red, p1Col.green, p1Col.blue, SDL_ALPHA_OPAQUE);
-			else
-				error = SDL_SetRenderDrawColor(renderer, p2Col.red, p2Col.green, p2Col.blue, SDL_ALPHA_OPAQUE);
+			if(p1Tile) error = SDL_SetRenderDrawColor(renderer, p1Col.red, p1Col.green, p1Col.blue, SDL_ALPHA_OPAQUE);
+			else error = SDL_SetRenderDrawColor(renderer, p2Col.red, p2Col.green, p2Col.blue, SDL_ALPHA_OPAQUE);
 
 			//place rect
 			error = SDL_RenderFillRect(renderer, &rect);

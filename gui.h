@@ -76,8 +76,6 @@ public:
 	;   Each button presse and release will run two callbacks.
 	*/
 	buttonState_t check(SDL_MouseButtonEvent mouseButtonEvent) {
-		int error = 0;
-	
 		bool mouseIsPressed = false;
 		bool transitioned;
 		
@@ -132,8 +130,9 @@ public:
 		}
 		
 		currentlyPressed = mouseIsPressed;
-		
-		return (buttonState_t) {toggleState, transitioned};
+
+		buttonState_t ret = {toggleState, transitioned};
+		return ret;
 	}
 };
 

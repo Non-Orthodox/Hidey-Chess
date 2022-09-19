@@ -1,5 +1,6 @@
 
 #include "controller.h"
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include "types.h"
@@ -14,7 +15,7 @@ void testController(board* board, gameState* GAME_STATE)
     int coords[4];
     int index = 0;
 
-    for(int i = 0; i < input.size(); i++)
+    for(ptrdiff_t i = 0; (size_t) i < input.size(); i++)
     {
         if(std::isdigit(input[i]) && index < 4)
         {

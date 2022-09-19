@@ -147,8 +147,6 @@ public:
 		return *this->valueString;
 	}
 	int setFromString(const std::string value) {
-		int e = 0;
-	
 		bool tempBool = false;
 		int tempInt = 0;
 		float tempFloat = 0.0;

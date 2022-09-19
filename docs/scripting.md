@@ -41,7 +41,9 @@ This form of scripting relies upon the command `""`, or in order to easily refer
 Running the chain command may be difficult to run from from a string, but once it has been called once, it is easy to call again.
 
 ```lisp
-; "( ())" runs the chain command, but this has to be in a subcommand of the chain. I'm not entirely sure if there is a good reason to do this. Prints "5".
+;; "( ())" runs the chain command, but this has to be in a subcommand
+;; of the chain. I'm not entirely sure if there is a good reason to
+;; do this. Prints "5".
 --=(echo ( 5))
 ; Syntax error:
 --=(echo (5))

@@ -16,6 +16,12 @@ int MM_EventHandle( SDL_Event* event,
                     int boardWidth,
                     int boardHeight)
 {
+	(void) window;
+	(void) p1Color;
+	(void) p2Color;
+	(void) boardButtons;
+	(void) boardWidth;
+	(void) boardHeight;
 	buttonState_t check;
 	
 	while (SDL_PollEvent(event)) {
@@ -64,7 +70,7 @@ int MM_EventHandle( SDL_Event* event,
 			{
 			case SDL_WINDOWEVENT_RESIZED:
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				int winWidth, winHeight;
+				// int winWidth, winHeight;
 				//SDL_GetWindowSize(window, &winWidth, &winHeight);
 				//renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
 				//render pieces
@@ -100,8 +106,8 @@ int MM_EventHandle( SDL_Event* event,
 			default:
 				warning("Unhandled window event.");
 				break;
-			break;
 			}
+			break;
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
@@ -122,7 +128,10 @@ int MP_EventHandle( SDL_Event* event,
                     int boardWidth,
                     int boardHeight)
 {
-	
+	(void) window;
+	(void) GAME_STATE;
+	(void) p1Color;
+	(void) p2Color;
 	while (SDL_PollEvent(event)) {
 		switch(event->type)
 		{
@@ -145,7 +154,7 @@ int MP_EventHandle( SDL_Event* event,
 			{
 			case SDL_WINDOWEVENT_RESIZED:
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				int winWidth, winHeight;
+				// int winWidth, winHeight;
 				//SDL_GetWindowSize(window, &winWidth, &winHeight);
 				//renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
 				//render pieces
@@ -181,8 +190,8 @@ int MP_EventHandle( SDL_Event* event,
 			default:
 				warning("Unhandled window event.");
 				break;
-			break;
 			}
+			break;
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
@@ -203,7 +212,10 @@ int SP_EventHandle( SDL_Event* event,
                     int boardWidth,
                     int boardHeight)
 {
-	
+	(void) window;
+	(void) GAME_STATE;
+	(void) p1Color;
+	(void) p2Color;
 	buttonState_t check;// = {false, false};
 	static int selected1_index = -1;
 	
@@ -247,7 +259,7 @@ int SP_EventHandle( SDL_Event* event,
 			{
 			case SDL_WINDOWEVENT_RESIZED:
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
-				int winWidth, winHeight;
+				// int winWidth, winHeight;
 				//SDL_GetWindowSize(window, &winWidth, &winHeight);
 				//renderBoard(renderer, winWidth/2, winHeight/2, winHeight/12, p1Color, p2Color);
 				//render pieces
@@ -283,8 +295,8 @@ int SP_EventHandle( SDL_Event* event,
 			default:
 				warning("Unhandled window event.");
 				break;
-			break;
 			}
+			break;
 	
 		//PRINT NOT YET ADDED ACTION TYPES
 		default:
