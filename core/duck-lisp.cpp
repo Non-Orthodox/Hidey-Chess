@@ -1,5 +1,6 @@
 #include "duck-lisp.hpp"
 #include <cstddef>
+#include <iostream>
 #include "duck-lisp/DuckLib/core.h"
 #include "duck-lisp/duckLisp.h"
 #include "duck-lisp/duckVM.h"
