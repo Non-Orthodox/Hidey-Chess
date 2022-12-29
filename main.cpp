@@ -261,8 +261,8 @@ int main(int argc, char *argv[]){
 	for (int y = 0; y < boardHeight; y++) {
 		for (int x = 0; x < boardWidth; x++) {
 			tempSetting = new Setting("x" + std::to_string(x) + "y" + std::to_string(y), false);
-			tempRect.x = winHeight/2 - boardWidth/2.0*tempRect.w + x*tempRect.w;
-			tempRect.y = winHeight/2 - boardHeight/2.0*tempRect.h + y*tempRect.h;
+			tempRect.x = winHeight/2 - boardWidth/2*tempRect.w + x*tempRect.w;
+			tempRect.y = winHeight/2 - boardHeight/2*tempRect.h + y*tempRect.h;
 			boardButtons.push_back(Button(tempSetting, renderer, tempRect));
 			// Toggle switch.
 			boardButtons.back().toggle = true;
