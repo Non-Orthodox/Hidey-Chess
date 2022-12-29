@@ -27,7 +27,7 @@ set(CORE core/piece.cpp
   core/basicVisuals.cpp
   core/board.cpp
   core/log.cpp
-  duck-lisp.cpp
+  core/duck-lisp.cpp
   )
 
 add_library(HideyCore ${CORE})
