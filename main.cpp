@@ -164,12 +164,14 @@ int main(int argc, char *argv[]){
 
 	main_parseCommandLineArguments(argc, argv);
 
+	log_init();
+
 	std::shared_ptr<DuckLisp> g_duckLisp(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
 	                                                  * sizeof(dl_uint8_t)));
 
 	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
-	const int boardWidth = (*g_settings)[settingEnum_board_width]->getInt();
-	const int boardHeight = (*g_settings)[settingEnum_board_height]->getInt();
+	const int boardWidth = 8;
+	const int boardHeight = 8;
 	
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;

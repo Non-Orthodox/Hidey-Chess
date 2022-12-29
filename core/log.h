@@ -35,6 +35,8 @@
 5   nothing
 */
 
+void log_init();
+
 // Don't use these.
 void log_debug(const char function[], const int line, std::string m);
 void log_info(const char function[], const int line, std::string m);

@@ -1,33 +1,75 @@
 
 #include "log.h"
 #include <iostream>
+#include <cstdio>
+#include <string>
+#include "settings.h"
+
+extern SettingsList *g_settings;
+
+bool logRedirected = false;
+
+int log_setting_callback(Setting *setting) {
+	int value = setting->getInt();
+	if ((value < 0) || (value > 5)) {
+		int newValue = value;
+		if (newValue < 0) newValue = 0;
+		if (newValue > 5) newValue = 5;
+		warning("Attempted to set log level to "
+		        + std::to_string(value)
+		        + ". Setting to "
+		        + std::to_string(newValue)
+		        + ".");
+		value = newValue;
+	}
+	return 0;
+}
+
+void log_init() {
+	Setting *logLevelSetting = (*g_settings)[settingEnum_log_level];
+	log_setting_callback(logLevelSetting);
+	logLevelSetting->callback = log_setting_callback;
+	std::string logFileName = (*g_settings)[settingEnum_log_file]->getString();
+	if (logFileName != "") {
+		freopen(logFileName.c_str(), "w", stderr);
+		logRedirected = true;
+	}
+}
+
+void log(const char function[], const int line, std::string m, const char color[], const char logTypeName[], const int logLevel) {
+	if ((*g_settings)[settingEnum_log_level]->getInt() >= logLevel) {
+		std::cerr << (logRedirected ? "" : color)
+		          << logTypeName
+		          << ": "
+		          << (logRedirected ? "" : COLOR_BLUE)
+		          << "("
+		          << function
+		          << ":"
+		          << line
+		          << ")"
+		          << (logRedirected ? "" : COLOR_NORMAL)
+		          << " "
+		          << m
+		          << std::endl;
+	}
+}
 
 void log_debug(const char function[], const int line, std::string m) {
-	if ((*g_settings)[settingEnum_log_level]->getInt() > 4) {
-		std::cout << COLOR_WHITE "Debug: " COLOR_BLUE "(" << function << ":" << line << ")" COLOR_NORMAL " " << m << std::endl;
-	}
+	log(function, line, m, COLOR_WHITE, "Debug", 5);
 }
 
 void log_info(const char function[], const int line, std::string m) {
-	if ((*g_settings)[settingEnum_log_level]->getInt() > 3) {
-		std::cout << COLOR_GREEN "Info: " COLOR_BLUE "(" << function << ":" << line << ")" COLOR_NORMAL " " << m << std::endl;
-	}
+	log(function, line, m, COLOR_GREEN, "Info", 4);
 }
 
 void log_warning(const char function[], const int line, std::string m) {
-	if ((*g_settings)[settingEnum_log_level]->getInt() > 2) {
-		std::cout << COLOR_MAGENTA "Warning: " COLOR_BLUE "(" << function << ":" << line << ")" COLOR_NORMAL " " << m << std::endl;
-	}
+	log(function, line, m, COLOR_MAGENTA, "Warning", 3);
 }
 
 void log_error(const char function[], const int line, std::string m) {
-	if ((*g_settings)[settingEnum_log_level]->getInt() > 1) {
-		std::cout << COLOR_YELLOW "Error: " COLOR_BLUE "(" << function << ":" << line << ")" COLOR_NORMAL " " << m << std::endl;
-	}
+	log(function, line, m, COLOR_YELLOW, "Error", 2);
 }
 
 void log_critical_error(const char function[], const int line, std::string m) {
-	if ((*g_settings)[settingEnum_log_level]->getInt() > 0) {
-		std::cout << COLOR_RED "Critical error: " COLOR_BLUE "(" << function << ":" << line << ")" COLOR_NORMAL " " << m << std::endl;
-	}
+	log(function, line, m, COLOR_RED, "Critical error", 1);
 }

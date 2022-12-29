@@ -283,23 +283,22 @@ extern SettingsList *g_settings;
 /* Settings */
 
 #define SETTINGS_LIST \
+	ENTRY(help, "") \
 	ENTRY(peer_ip_address, "localhost") \
 	ENTRY(peer_network_port, 2850) \
 	ENTRY(network_port, 2851) \
-	ENTRY(board_width, 8) \
-	ENTRY(board_height, 8) \
 	ENTRY(disable_sdl, false) \
 	ENTRY(log_level, 0) \
+	ENTRY(log_file, "") \
 	ENTRY(compiler_heap_size, 1000000) \
-	ENTRY(help, "") \
 
 #define SETTINGS_ALIAS_LIST \
+	ENTRY('h', help) \
 	ENTRY('a', peer_ip_address) \
 	ENTRY('p', peer_network_port) \
 	ENTRY('n', network_port) \
 	ENTRY('s', disable_sdl) \
 	ENTRY('l', log_level) \
-	ENTRY('h', help) \
 
 #define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
 enum settingEnum_t {
