@@ -4,9 +4,14 @@
   m)
 
 (defmacro g (variable)
+  (comment Get value of setting.)
   (list (quote setting-get) (list (quote quote) variable)))
 (defmacro s (variable value)
+  (comment Set value of setting.)
   (list (quote setting-set) (list (quote quote) variable) value))
+(defmacro c (variable)
+  (comment Run callback of setting without changing its value.)
+  (list (quote s) variable (list (quote g) variable)))
 
 (var log-level-debug 5)
 (var log-level-info 4)
@@ -17,4 +22,4 @@
 
 (comment (s log_level log-level-debug))
 (comment (s log_file "hidey-chess.log"))
-(comment (s help ""))
+(comment (c help))
