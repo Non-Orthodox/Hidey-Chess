@@ -288,13 +288,13 @@ extern SettingsList *g_settings;
 	ENTRY(peer_network_port, 2850) \
 	ENTRY(network_port, 2851) \
 	ENTRY(disable_sdl, false) \
-	ENTRY(log_level, 0) \
+	ENTRY(log_level, 5) \
 	ENTRY(log_file, "") \
 	ENTRY(game_compiler_heap_size, 1000000) \
 	ENTRY(config_compiler_heap_size, 1000000) \
 	ENTRY(config_vm_heap_size, 1000000) \
 	ENTRY(config_vm_max_objects, 1000) \
-	ENTRY(config_file, "") \
+	ENTRY(config_file, "../config.dl") \
 	ENTRY(disassemble, false) \
 
 #define SETTINGS_ALIAS_LIST \

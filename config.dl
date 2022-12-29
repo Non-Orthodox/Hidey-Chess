@@ -8,6 +8,13 @@
 (defmacro s (variable value)
   (list (quote setting-set) (list (quote quote) variable) value))
 
-(s log_level 5)
-(s log_file "hidey-chess.log")
-(comment (s help " "))
+(var log-level-debug 5)
+(var log-level-info 4)
+(var log-level-warning 3)
+(var log-level-error 2)
+(var log-level-critical-error 1)
+(var log-level-disabled 0)
+
+(comment (s log_level log-level-debug))
+(comment (s log_file "hidey-chess.log"))
+(comment (s help ""))
