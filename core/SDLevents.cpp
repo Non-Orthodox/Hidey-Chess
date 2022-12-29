@@ -38,23 +38,23 @@ int MM_EventHandle( SDL_Event* event,
 			for (size_t i = 0; i < guiButtons->size(); i++) {
 				check = (*guiButtons)[i].check(event->button);
 				if (check.value) {
-					if ((*guiButtons)[i].setting->name == "singleplayer") {
+					if ((*guiButtons)[i].name == "singleplayer") {
 						*GAME_STATE = SINGLEPLAYER;
 						
 						// (*guiButtons)[i].active = false;
 						for (size_t j = 0; j < guiButtons->size(); j++) {
-							if ((*guiButtons)[j].setting->name == "multiplayer") {
+							if ((*guiButtons)[j].name == "multiplayer") {
 								(*guiButtons)[j].active = false;
 							}
 						}
 						break;
 					}
-					else if ((*guiButtons)[i].setting->name == "multiplayer") {
+					else if ((*guiButtons)[i].name == "multiplayer") {
 						*GAME_STATE = MULTIPLAYER;
 						
 						// (*guiButtons)[i].active = false;
 						for (size_t j = 0; j < guiButtons->size(); j++) {
-							if ((*guiButtons)[j].setting->name == "singleplayer") {
+							if ((*guiButtons)[j].name == "singleplayer") {
 								(*guiButtons)[j].active = false;
 							}
 						}

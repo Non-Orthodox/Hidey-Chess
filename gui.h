@@ -4,7 +4,6 @@
 #include <stdexcept>
 #include <iostream>
 #include <SDL2/SDL.h>
-#include "settings.h"
 #include "types.h"
 
 struct buttonState_t {
@@ -18,7 +17,7 @@ private:
 	SDL_Renderer *renderer;
 public:
 	bool currentlyPressed = false;
-	Setting *setting;
+	std::string name;
 	// Greyed out and unpressable if false.
 	bool active = true;
 	// Toggle or momentary contact.
@@ -34,9 +33,8 @@ public:
 	// Determines which buttons trigger an action.
 	uint8_t buttonMask = (1<<SDL_BUTTON_LEFT);
 	
-	Button(Setting *setting, SDL_Renderer *renderer, SDL_Rect rect) {
-		assert(setting->type == settingsType_boolean);
-		this->setting = setting;
+	Button(std::string name, SDL_Renderer *renderer, SDL_Rect rect) {
+		this->name = name;
 		this->rect = rect;
 		this->renderer = renderer;
 	}
@@ -102,16 +100,11 @@ public:
 			if (toggle) {
 				if (!toggleOnUp) {
 					toggleState = !toggleState;
-					
-					setting->set(toggleState);
 				}
 			}
 			else {
 				toggleState = mouseIsPressed;
-				setting->set(toggleState);
 			}
-			// We could place `setting->set` here, but then the callback would
-			// be run even if there was no change in state.
 		}
 		// First time mouse is released.
 		else if (currentlyPressed && !mouseIsPressed) {
@@ -119,13 +112,10 @@ public:
 			if (toggle) {
 				if (toggleOnUp) {
 					toggleState = !toggleState;
-					
-					setting->set(toggleState);
 				}
 			}
 			else {
 				toggleState = mouseIsPressed;
-				setting->set(toggleState);
 			}
 		}
 		

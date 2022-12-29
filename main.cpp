@@ -251,7 +251,6 @@ int main(int argc, char *argv[]){
 	board board(8,8);
 	std::vector<Button> boardButtons;
 	std::vector<Button> guiButtons;
-	Setting *tempSetting;
 	SDL_Rect tempRect;
 	
 	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
@@ -263,10 +262,9 @@ int main(int argc, char *argv[]){
 	
 	for (int y = 0; y < boardHeight; y++) {
 		for (int x = 0; x < boardWidth; x++) {
-			tempSetting = new Setting("x" + std::to_string(x) + "y" + std::to_string(y), false);
 			tempRect.x = winHeight/2 - boardWidth/2*tempRect.w + x*tempRect.w;
 			tempRect.y = winHeight/2 - boardHeight/2*tempRect.h + y*tempRect.h;
-			boardButtons.push_back(Button(tempSetting, renderer, tempRect));
+			boardButtons.push_back(Button("x" + std::to_string(x) + "y" + std::to_string(y), renderer, tempRect));
 			// Toggle switch.
 			boardButtons.back().toggle = true;
 			// Toggle on button release.
@@ -281,17 +279,15 @@ int main(int argc, char *argv[]){
 		}
 	}
 	
-	tempSetting = new Setting("singleplayer", false);
 	tempRect.x = 50;
 	tempRect.y = 50;
-	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
+	guiButtons.push_back(Button("singleplayer", renderer, tempRect));
 	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
 	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
 	
-	tempSetting = new Setting("multiplayer", false);
 	tempRect.x = 50;
 	tempRect.y = 150;
-	guiButtons.push_back(Button(tempSetting, renderer, tempRect));
+	guiButtons.push_back(Button("multiplayer", renderer, tempRect));
 	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
 	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
 	
