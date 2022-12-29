@@ -8,6 +8,26 @@
 extern SettingsList *g_settings;
 
 bool logRedirected = false;
+FILE *logFile = nullptr;
+
+int log_setting_callback(Setting *setting);
+int log_file_callback(Setting *setting);
+
+void log_init() {
+	Setting *logLevelSetting = (*g_settings)[settingEnum_log_level];
+	log_setting_callback(logLevelSetting);
+	logLevelSetting->callback = log_setting_callback;
+
+	Setting *logFileSetting = (*g_settings)[settingEnum_log_file];
+	logFileSetting->callback = log_file_callback;
+
+	std::string logFileName = (*g_settings)[settingEnum_log_file]->getString();
+	if (logFileName != "") {
+		info("Logging to \"" + logFileName + "\".");
+		logFile = freopen(logFileName.c_str(), "w", stderr);
+		logRedirected = true;
+	}
+}
 
 int log_setting_callback(Setting *setting) {
 	int value = setting->getInt();
@@ -20,20 +40,14 @@ int log_setting_callback(Setting *setting) {
 		        + ". Setting to "
 		        + std::to_string(newValue)
 		        + ".");
-		value = newValue;
+		setting->set(newValue);
 	}
 	return 0;
 }
 
-void log_init() {
-	Setting *logLevelSetting = (*g_settings)[settingEnum_log_level];
-	log_setting_callback(logLevelSetting);
-	logLevelSetting->callback = log_setting_callback;
-	std::string logFileName = (*g_settings)[settingEnum_log_file]->getString();
-	if (logFileName != "") {
-		freopen(logFileName.c_str(), "w", stderr);
-		logRedirected = true;
-	}
+int log_file_callback(Setting *setting) {
+	log_init();
+	return 0;
 }
 
 void log(const char function[], const int line, std::string m, const char color[], const char logTypeName[], const int logLevel) {

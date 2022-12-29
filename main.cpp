@@ -171,8 +171,9 @@ int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> 
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
 	std::string configString = "((;) " + configSs.str() + ")";
-	duckLisp->registerCallback(nullptr, "print");
-	duckVM->registerCallback(0, script_callback_print);
+	registerCallback(duckVM, duckLisp, "print", script_callback_print);
+	registerCallback(duckVM, duckLisp, "setting-get", script_callback_get);
+	registerCallback(duckVM, duckLisp, "setting-set", script_callback_set);
 	return eval(duckVM, duckLisp, configString);
 }
 

@@ -77,6 +77,18 @@ int DuckVM::registerCallback(const std::ptrdiff_t index, dl_error_t (*callback)(
 
 
 
+int registerCallback(std::shared_ptr<DuckVM> duckVM,
+                     std::shared_ptr<DuckLisp> duckLisp,
+                     const std::string name,
+                     dl_error_t (*callback)(duckVM_t *)) {
+	int error = 0;
+	std::ptrdiff_t index;
+	error = duckLisp->registerCallback(&index, name);
+	if (error) return error;
+	error = duckVM->registerCallback(index, callback);
+	return error;
+}
+
 dl_error_t print_errors(dl_array_t *errors){
 	dl_error_t e = dl_error_ok;
 	while (errors->elements_length > 0) {

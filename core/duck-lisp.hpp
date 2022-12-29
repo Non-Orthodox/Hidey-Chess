@@ -27,4 +27,8 @@ public:
 	int eval(const std::string);
 };
 
+int registerCallback(std::shared_ptr<DuckVM> duckVM,
+                     std::shared_ptr<DuckLisp> duckLisp,
+                     const std::string name,
+                     dl_error_t (*callback)(duckVM_t *));
 int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string);

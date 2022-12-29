@@ -1,4 +1,5 @@
 #include "scripting.hpp"
+#include "settings.h"
 #include <iostream>
 
 dl_error_t script_callback_print(duckVM_t *duckVM);
@@ -203,7 +204,7 @@ dl_error_t script_callback_print(duckVM_t *duckVM) {
 		std::cout << "]";
 		break;
 	default:
-std::cout << "print: Unsupported type. [" << object.type << "]\n";
+		std::cout << "print: Unsupported type. [" << object.type << "]\n";
 	}
 
 	e = duckVM_push(duckVM, &object);
@@ -215,6 +216,76 @@ std::cout << "print: Unsupported type. [" << object.type << "]\n";
 
 	fflush(stdout);
 
+	return e;
+}
+
+dl_error_t script_callback_get(duckVM_t *duckVM) {
+	dl_error_t e = dl_error_ok;
+
+	duckLisp_object_t object;
+
+	e = duckVM_pop(duckVM, &object);
+	if (e) return e;
+	if (object.type != duckLisp_object_type_symbol) {
+		e = dl_error_invalidValue;
+		return e;
+	}
+	Setting* setting = g_settings->find(std::string(object.value.symbol.value, object.value.symbol.value_length));
+	settingsType_t settingType = setting->type;
+	if (settingType == settingsType_boolean) {
+		object.type = duckLisp_object_type_bool;
+		object.value.boolean = setting->getBool();
+	}
+	else if (settingType == settingsType_integer) {
+		object.type = duckLisp_object_type_integer;
+		object.value.integer = setting->getInt();
+	}
+	else if (settingType == settingsType_string) {
+		object.type = duckLisp_object_type_string;
+		std::string string = setting->getString();
+		// DANGER
+		object.value.string.value = (char *) string.c_str();
+		object.value.string.value_length = string.length();
+	}
+	else {
+		e = dl_error_invalidValue;
+		return e;
+	}
+	e = duckVM_push(duckVM, &object);
+	return e;
+}
+
+dl_error_t script_callback_set(duckVM_t *duckVM) {
+	dl_error_t e = dl_error_ok;
+
+	duckLisp_object_t object1;
+	duckLisp_object_t object2;
+
+	e = duckVM_pop(duckVM, &object2);
+	if (e) return e;
+	e = duckVM_pop(duckVM, &object1);
+	if (e) return e;
+	if (object1.type != duckLisp_object_type_symbol) {
+		e = dl_error_invalidValue;
+		return e;
+	}
+	Setting* setting = g_settings->find(std::string(object1.value.symbol.value, object1.value.symbol.value_length));
+	settingsType_t settingType = setting->type;
+	duckLisp_object_type_t objectType = object2.type;
+	if ((settingType == settingsType_boolean) && (objectType == duckLisp_object_type_bool)) {
+		setting->set((bool) object2.value.boolean);
+	}
+	else if ((settingType == settingsType_integer) && (objectType == duckLisp_object_type_integer)) {
+		setting->set(static_cast<int>(object2.value.integer));
+	}
+	else if ((settingType == settingsType_string) && (objectType == duckLisp_object_type_string)) {
+		setting->set(std::string(object2.value.string.value, object2.value.string.value_length));
+	}
+	else {
+		e = dl_error_invalidValue;
+		return e;
+	}
+	e = duckVM_push(duckVM, &object2);
 	return e;
 }
 
