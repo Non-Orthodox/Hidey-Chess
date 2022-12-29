@@ -9,11 +9,11 @@
 #include <memory>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "settings.h"
 #include "SDLevents.h"
 #include "defer.hpp"
 #include "piece.h"
 #include "basicVisuals.h"
-#include "settings.h"
 #include "types.h"
 #include "board.h"
 // #include "controller.h"
