@@ -294,6 +294,7 @@ extern SettingsList *g_settings;
 	ENTRY(config_compiler_heap_size, 1000000) \
 	ENTRY(config_vm_heap_size, 1000000) \
 	ENTRY(config_vm_max_objects, 1000) \
+	ENTRY(config_file, "") \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
@@ -302,6 +303,7 @@ extern SettingsList *g_settings;
 	ENTRY('n', network_port) \
 	ENTRY('s', disable_sdl) \
 	ENTRY('l', log_level) \
+	ENTRY('c', config_file) \
 
 #define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
 enum settingEnum_t {

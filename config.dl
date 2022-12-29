@@ -1,0 +1,14 @@
+
+(print "Hello, world!\n")
+
+(comment (defmacro g (variable)
+           (list (quote setting-get) (list (quote quote) variable)))
+         (defmacro s (variable value)
+           (list (quote setting-set) (list (quote quote) variable) value))
+
+         (s log_level 5)
+         (s log_file "")
+         (s game_compiler_heap_size 10)
+         (s config_compiler_heap_size 10)
+         (s config_vm_heap_size 10)
+         (s config_vm_max_objects 10))

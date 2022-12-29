@@ -1,28 +1,30 @@
 #pragma once
 
 #include <string>
+#include <memory>
 extern "C" {
 #include "duck-lisp/DuckLib/memory.h"
 #include "duck-lisp/duckLisp.h"
 }
 
 class DuckLisp {
+public:
 	duckLisp_t duckLisp;
 	dl_memoryAllocation_t memoryAllocation;
-public:
 	DuckLisp(const std::size_t);
 	~DuckLisp();
 	int registerGenerator();
-	int registerCallback();
-	int eval(const std::string);
+	int registerCallback(std::ptrdiff_t *index, std::string name);
 };
 
 class DuckVM {
+public:
 	duckVM_t duckVM;
 	dl_memoryAllocation_t memoryAllocation;
-public:
 	DuckVM(const std::size_t, const std::size_t);
 	~DuckVM();
-	int addCallback();
+	int registerCallback(const std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));
 	int eval(const std::string);
 };
+
+int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string);

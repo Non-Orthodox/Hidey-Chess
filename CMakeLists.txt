@@ -28,6 +28,7 @@ set(CORE core/piece.cpp
   core/board.cpp
   core/log.cpp
   core/duck-lisp.cpp
+  core/scripting.cpp
   )
 
 add_library(HideyCore ${CORE})

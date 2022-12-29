@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <fstream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "settings.h"
@@ -20,6 +21,7 @@
 #include "gui.h"
 #include "log.h"
 #include "duck-lisp.hpp"
+#include "scripting.hpp"
 
 SettingsList *g_settings;
 
@@ -163,7 +165,15 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
 	(void) duckLisp;
 	(void) duckVM;
-	return 0;
+	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
+	if (configFileName == "") return 0;
+	std::ifstream configFileStream(configFileName);
+	std::stringstream configSs;
+	configSs << configFileStream.rdbuf();
+	std::string configString = "((;) " + configSs.str() + ")";
+	duckLisp->registerCallback(nullptr, "print");
+	duckVM->registerCallback(0, script_callback_print);
+	return eval(duckVM, duckLisp, configString);
 }
 
 int main(int argc, char *argv[]){
