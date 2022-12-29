@@ -295,6 +295,7 @@ extern SettingsList *g_settings;
 	ENTRY(config_vm_heap_size, 1000000) \
 	ENTRY(config_vm_max_objects, 1000) \
 	ENTRY(config_file, "") \
+	ENTRY(disassemble, false) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
