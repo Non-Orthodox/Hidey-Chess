@@ -1,0 +1,75 @@
+(comment Create global variables and constants.)
+
+(comment `status-ok' and `status-error' are constants. Don't modify them.)
+(var status-ok true)
+(var status-error false)
+
+(var black false)
+(var white true)
+
+(comment Using integers instead of symbols so the engine doesn't have to do string compares. It's also easier to type.)
+(comment I should write an `enum' macro.)
+(var piece-empty 0)
+(var piece-pawn 1)
+(var piece-rook 2)
+(var piece-knight 3)
+(var piece-bishop 4)
+(var piece-queen 5)
+(var piece-king 6)
+
+(defun make-vec-2 (x y)
+  (cons x y))
+
+(defun make-piece (type origin visible)
+  (comment (integer vec-2))
+  (vector type origin visible))
+
+
+(comment Engine will handle movement. Game will change movement settings.
+         Engine will assume it is the next player's turn after a movement.
+         Player will select a move. Selection is done entirely by the engine.
+         Game will change settings of pieces and settings of the game.
+
+         Required by Chess:
+         Game can indicate a win by a player.
+         Game can indicate whether the move is valid.
+         Game can change the visibility of the current piece.
+         Game can move pieces. This allows for castling.
+         Game can explicitly mark a piece as captured/deleted. This allows for En passant.
+
+         Required by Checkers:
+         Game can skip or delay the other player's turn. Skip == delay. This allows for double/triple/etc. jumps.
+         Game can change the type of a piece. This allows for crowning men.)
+
+(comment Engine callbacks:
+         (defun piece-set-visibility (piece visible))
+         (comment `move' not `set-position' since capturing automatically occurs.)
+         (defun piece-move (destination origin))
+         (defun piece-capture (piece))
+         (defun piece-set-type (piece type))
+         (defun get-piece-at (position)))
+
+(comment Movement is mostly functional, so let's keep the representation functional.
+         The engine will expect to be returned a vector of movement flags.
+         Operations on pieces will not be functional because that is not the goal.)
+
+
+(comment The purpose of this seemingly useless function is to provide runtime arity checking.
+         This can (and probably should) be done in the engine instead.)
+(defun make-move-status (win valid skip-turn)
+  (vector win valid skip-turn))
+
+
+(comment Return all relevant functions to the engine so that it knows what to call. The required number and order is set
+         in the engine.)
+
+(defun move (turn current next)
+  (var win false)
+  (var valid false)
+  (var skip-turn false)
+  (when (and (= (tile-get-x current) 5)
+             (= (tile-get-y current) 5)
+             (= (tile-get-x next) 6)
+             (= (tile-get-y next) 6))
+    (setq win true))
+  (make-move-status win valid skip-turn))
