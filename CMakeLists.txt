@@ -21,21 +21,30 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIRECTORY}")
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
-add_subdirectory(duck-lisp build-lisp)
+# Core Library
+set(CORE core/piece.cpp
+  core/SDLevents.cpp
+  core/basicVisuals.cpp
+  core/board.cpp
+  core/log.cpp
+  duck-lisp.cpp
+  )
 
-# Executable
+add_library(HideyCore ${CORE})
+target_include_directories(HideyCore
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core
+  )
+
+# Executables
 add_executable(Hidey-Chess
   main.cpp
-  piece.cpp
-  SDLevents.cpp
-  basicVisuals.cpp
-  board.cpp
-  controller.cpp
-  log.cpp
-  duck-lisp.cpp)
+  )
 
+add_subdirectory(duck-lisp build-lisp)
+add_subdirectory(tests)
 
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
-target_link_libraries(Hidey-Chess PUBLIC SDL2 ${SDL2_IMAGE_LIBRARIES} DuckLisp)
+target_link_libraries(Hidey-Chess PUBLIC SDL2 ${SDL2_IMAGE_LIBRARIES} HideyCore DuckLisp)

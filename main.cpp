@@ -16,7 +16,7 @@
 #include "settings.h"
 #include "types.h"
 #include "board.h"
-#include "controller.h"
+// #include "controller.h"
 #include "gui.h"
 #include "log.h"
 #include "duck-lisp.hpp"
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]){
 	//Variables used for main while loop
 	SDL_Event event;
 	int run = 1;
-	int winWidth, winHeight; //used to store window dimensions
+	int winWidth, winHeight = 0; //used to store window dimensions
 	gameState GAME_STATE = MAIN_MENU;
 	board board(8,8);
 	std::vector<Button> boardButtons;
@@ -279,7 +279,6 @@ int main(int argc, char *argv[]){
 				// SDL_RenderPresent(renderer);
 
 				//run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
-				testController(&board, &GAME_STATE);
 				break;
 
 			//console mode is for testing the game without using graphics
