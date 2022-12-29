@@ -166,8 +166,9 @@ int main(int argc, char *argv[]){
 
 	log_init();
 
-	std::shared_ptr<DuckLisp> g_duckLisp(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
-	                                                  * sizeof(dl_uint8_t)));
+	// This compiler will be used once and then destroyed.
+	std::shared_ptr<DuckLisp> duckLisp(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
+	                                                * sizeof(dl_uint8_t)));
 
 	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
 	const int boardWidth = 8;
