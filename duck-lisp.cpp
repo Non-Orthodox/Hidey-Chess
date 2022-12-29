@@ -25,5 +25,6 @@ DuckLisp::DuckLisp(const std::size_t hunk_size) {
 }
 
 DuckLisp::~DuckLisp() {
+	duckLisp_quit(&duckLisp);
 	FREE(duckLisp.memoryAllocation->memory);
 }
