@@ -34,7 +34,7 @@ set(CORE core/piece.cpp
 add_library(HideyCore ${CORE})
 target_include_directories(HideyCore
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/core
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
   )
 
 # Executables
