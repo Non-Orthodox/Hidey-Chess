@@ -160,18 +160,30 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	}
 }
 
+int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
+	(void) duckLisp;
+	(void) duckVM;
+	return 0;
+}
+
 int main(int argc, char *argv[]){
 
 	main_parseCommandLineArguments(argc, argv);
 
 	log_init();
 
-	// This compiler will be used once and then destroyed.
-	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
-	                                                     * sizeof(dl_uint8_t)));
-	// This compiler will be used to read config files and run a jank REPL.
-	std::shared_ptr<DuckLisp> configCompiler(new DuckLisp((*g_settings)[settingEnum_compiler_heap_size]->getInt()
+	// This compiler and VM will be used to read config files and run a jank REPL.
+	std::shared_ptr<DuckLisp> configCompiler(new DuckLisp((*g_settings)[settingEnum_config_compiler_heap_size]->getInt()
 	                                                      * sizeof(dl_uint8_t)));
+	std::shared_ptr<DuckVM> configVm(new DuckVM(((*g_settings)[settingEnum_config_vm_heap_size]->getInt()
+	                                             * sizeof(dl_uint8_t)),
+	                                            ((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
+	                                             * sizeof(dl_uint8_t))));
+	main_loadConfig(configCompiler, configVm);
+
+	// This compiler will be used once and then destroyed.
+	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
+	                                                     * sizeof(dl_uint8_t)));
 
 	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
 	const int boardWidth = 8;

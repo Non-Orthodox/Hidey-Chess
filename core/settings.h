@@ -290,7 +290,10 @@ extern SettingsList *g_settings;
 	ENTRY(disable_sdl, false) \
 	ENTRY(log_level, 0) \
 	ENTRY(log_file, "") \
-	ENTRY(compiler_heap_size, 1000000) \
+	ENTRY(game_compiler_heap_size, 1000000) \
+	ENTRY(config_compiler_heap_size, 1000000) \
+	ENTRY(config_vm_heap_size, 1000000) \
+	ENTRY(config_vm_max_objects, 1000) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
