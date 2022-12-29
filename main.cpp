@@ -23,6 +23,48 @@
 
 SettingsList *g_settings;
 
+int main_printHelp(Setting *setting) {
+	(void) setting;
+	std::cout << "Help:" << std::endl;
+	std::cout << "Variables can be set on the command line using \"--variable=value\" notation." << std::endl;
+	std::cout << "Settings {" << std::endl;
+	for (auto &setting: *g_settings) {
+		std::cout << setting.name
+		          << "::";
+		std::cout << ((setting.type == settingsType_boolean)
+		              ? "Boolean"
+		              : (setting.type == settingsType_integer)
+		              ? "Integer"
+		              : (setting.type == settingsType_float)
+		              ? "Float"
+		              : (setting.type == settingsType_string)
+		              ? "String"
+		              : "?");
+		std::cout << " = ";
+		if (setting.type == settingsType_boolean) {
+			std::cout << (setting.getBool() ? "True" : "False");
+		}
+		else if (setting.type == settingsType_integer) {
+			std::cout << setting.getInt();
+		}
+		else if (setting.type == settingsType_float) {
+			std::cout << setting.getFloat();
+		}
+		else if (setting.type == settingsType_string) {
+			std::cout << "\"" << setting.getString() << "\"";
+		}
+		else {
+			std::cout << "?";
+		}
+		if (setting.callback != NULL) {
+			std::cout << ", CALLBACK";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << "}" << std::endl;
+	return 0;
+}
+
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
 	// Initialize settings array.
@@ -47,9 +89,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 #   undef ENTRY
 	
 	// Bind callbacks
-#   define ENTRY(ENTRY_name, ENTRY_callback) g_settings->find(#ENTRY_name)->callback = ENTRY_callback;
-	SETTINGS_CALLBACKS_LIST
-#   undef ENTRY
+	g_settings->find("help")->callback = main_printHelp;
 	
 	/*
 	Starting at zero might be wrong, but the program name shouldn't be

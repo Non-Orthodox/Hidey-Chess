@@ -7,6 +7,7 @@
 #include <string>
 #include <stdexcept>
 #include <map>
+#include <iterator>
 
 enum settingsType_t {
 	settingsType_boolean,
@@ -256,6 +257,7 @@ private:
 public:
 	void insert(std::string name, Setting value) {
 		map.insert(std::pair<std::string, ptrdiff_t>(name, array.size()));
+		value.name = name;
 		array.push_back(value);
 	}
 	Setting *operator[](std::ptrdiff_t index) {
@@ -266,6 +268,12 @@ public:
 	}
 	Setting *find(std::string name) {
 		return &array[map.at(name)];
+	}
+	auto begin() {
+		return array.begin();
+	}
+	auto end() {
+		return array.end();
 	}
 };
 
@@ -283,6 +291,7 @@ extern SettingsList *g_settings;
 	ENTRY(disable_sdl, false) \
 	ENTRY(log_level, 0) \
 	ENTRY(compiler_heap_size, 1000000) \
+	ENTRY(help, "") \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('a', peer_ip_address) \
@@ -290,8 +299,7 @@ extern SettingsList *g_settings;
 	ENTRY('n', network_port) \
 	ENTRY('s', disable_sdl) \
 	ENTRY('l', log_level) \
-
-#define SETTINGS_CALLBACKS_LIST \
+	ENTRY('h', help) \
 
 #define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
 enum settingEnum_t {
