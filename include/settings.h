@@ -25,55 +25,69 @@ private:
 		float valueFloat;
 		std::string *valueString;
 	};
+	bool locked;
+	void constantInit() {
+		this->locked = false;
+	}
 public:
 	std::string name;
 	settingsType_t type = settingsType_boolean;
 	int (*callback)(Setting *) = nullptr;
 	Setting(std::string name, bool value) {
+		constantInit();
 		this->name = name;
 		this->type = settingsType_boolean;
 		this->valueBool = value;
 	}
 	Setting(bool value) {
+		constantInit();
 		this->type = settingsType_boolean;
 		this->valueBool = value;
 	}
 	Setting(std::string name, int value) {
+		constantInit();
 		this->name = name;
 		this->type = settingsType_integer;
 		this->valueInt = value;
 	}
 	Setting(int value) {
+		constantInit();
 		this->type = settingsType_integer;
 		this->valueInt = value;
 	}
 	Setting(std::string name, float value) {
+		constantInit();
 		this->name = name;
 		this->type = settingsType_float;
 		this->valueFloat = value;
 	}
 	Setting(float value) {
+		constantInit();
 		this->type = settingsType_float;
 		this->valueFloat = value;
 	}
 	Setting(std::string name, std::string value) {
+		constantInit();
 		this->name = name;
 		this->type = settingsType_string;
 		this->valueString = new std::string();
 		*this->valueString = value;
 	}
 	Setting(std::string value) {
+		constantInit();
 		this->type = settingsType_string;
 		this->valueString = new std::string();
 		*this->valueString = value;
 	}
 	Setting(std::string name, const char *value) {
+		constantInit();
 		this->name = name;
 		this->type = settingsType_string;
 		this->valueString = new std::string();
 		*this->valueString = value;
 	}
 	Setting(const char *value) {
+		constantInit();
 		this->type = settingsType_string;
 		this->valueString = new std::string();
 		*this->valueString = value;
@@ -99,6 +113,7 @@ public:
 	}
 	bool set(bool value) {
 		assert(type == settingsType_boolean);
+		if (this->locked) return this->valueBool;
 		this->valueBool = value;
 		if (callback != nullptr) {
 			if (callback(this)) {
@@ -109,6 +124,7 @@ public:
 	}
 	int set(int value) {
 		assert(type == settingsType_integer);
+		if (this->locked) return this->valueInt;
 		this->valueInt = value;
 		if (callback != nullptr) {
 			if (callback(this)) {
@@ -119,6 +135,7 @@ public:
 	}
 	float set(float value) {
 		assert(type == settingsType_float);
+		if (this->locked) return this->valueFloat;
 		this->valueFloat = value;
 		if (callback != nullptr) {
 			if (callback(this)) {
@@ -129,6 +146,7 @@ public:
 	}
 	std::string set(std::string value) {
 		assert(type == settingsType_string);
+		if (this->locked) return *this->valueString;
 		*this->valueString = value;
 		if (callback != nullptr) {
 			if (callback(this)) {
@@ -139,6 +157,7 @@ public:
 	}
 	std::string set(const char *value) {
 		assert(type == settingsType_string);
+		if (this->locked) return *this->valueString;
 		*this->valueString = value;
 		if (callback != nullptr) {
 			if (callback(this)) {
@@ -248,6 +267,14 @@ public:
 			return 2;
 		}
 	}
+	bool lock() {
+		this->locked = true;
+		return this->locked;
+	}
+	bool unlock() {
+		this->locked = false;
+		return this->locked;
+	}
 };
 
 class SettingsList {
@@ -283,19 +310,19 @@ extern SettingsList *g_settings;
 /* Settings */
 
 #define SETTINGS_LIST \
-	ENTRY(help, "") \
-	ENTRY(peer_ip_address, "localhost") \
-	ENTRY(peer_network_port, 2850) \
-	ENTRY(network_port, 2851) \
-	ENTRY(disable_sdl, false) \
-	ENTRY(log_level, 5) \
-	ENTRY(log_file, "") \
-	ENTRY(game_compiler_heap_size, 1000000) \
-	ENTRY(config_compiler_heap_size, 1000000) \
-	ENTRY(config_vm_heap_size, 1000000) \
-	ENTRY(config_vm_max_objects, 1000) \
-	ENTRY(config_file, "../config.dl") \
-	ENTRY(disassemble, false) \
+	ENTRY(help, "", unlock) \
+	ENTRY(peer_ip_address, "localhost", unlock) \
+	ENTRY(peer_network_port, 2850, unlock) \
+	ENTRY(network_port, 2851, unlock) \
+	ENTRY(disable_sdl, false, lock) \
+	ENTRY(log_level, 5, unlock) \
+	ENTRY(log_file, "", unlock) \
+	ENTRY(game_compiler_heap_size, 1000000, unlock) \
+	ENTRY(config_compiler_heap_size, 1000000, lock) \
+	ENTRY(config_vm_heap_size, 1000000, lock) \
+	ENTRY(config_vm_max_objects, 1000, lock) \
+	ENTRY(config_file, "../config.dl", lock) \
+	ENTRY(disassemble, false, unlock) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
@@ -306,7 +333,7 @@ extern SettingsList *g_settings;
 	ENTRY('l', log_level) \
 	ENTRY('c', config_file) \
 
-#define ENTRY(ENTRY_name, ENTRY_value) settingEnum_##ENTRY_name,
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) settingEnum_##ENTRY_name,
 enum settingEnum_t {
 	SETTINGS_LIST
 };

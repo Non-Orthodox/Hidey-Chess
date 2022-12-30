@@ -73,7 +73,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	g_settings = new SettingsList();
 	
 	// Register settings.
-#define ENTRY(ENTRY_name, ENTRY_value) g_settings->insert(#ENTRY_name, ENTRY_value);
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) g_settings->insert(#ENTRY_name, ENTRY_value);
 		SETTINGS_LIST
 #undef ENTRY
 
@@ -160,6 +160,11 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 			continue;
 		}
 	}
+
+	// Lock some settings to prevent the user from crashing the engine.
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) (*g_settings)[settingEnum_##ENTRY_name]->ENTRY_lock();
+	SETTINGS_LIST
+#undef ENTRY
 }
 
 int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
