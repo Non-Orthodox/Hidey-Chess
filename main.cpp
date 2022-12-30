@@ -163,8 +163,6 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 }
 
 int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
-	(void) duckLisp;
-	(void) duckVM;
 	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
 	if (configFileName == "") return 0;
 	std::ifstream configFileStream(configFileName);
