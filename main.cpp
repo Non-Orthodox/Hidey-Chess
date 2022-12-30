@@ -67,6 +67,12 @@ int main_printHelp(Setting *setting) {
 	return 0;
 }
 
+int main_callback_repl(Setting *setting) {
+	(void) setting;
+	std::cout << "> ";
+	return 0;
+}
+
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
 	// Initialize settings array.
@@ -91,7 +97,8 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 #   undef ENTRY
 	
 	// Bind callbacks
-	g_settings->find("help")->callback = main_printHelp;
+	(*g_settings)[settingEnum_help]->callback = main_printHelp;
+	(*g_settings)[settingEnum_repl]->callback = main_callback_repl;
 	
 	/*
 	Starting at zero might be wrong, but the program name shouldn't be
@@ -180,8 +187,30 @@ int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> 
 	return eval(duckVM, duckLisp, configString);
 }
 
-int main(int argc, char *argv[]){
+void main_repl_init() {
+	std::ios_base::sync_with_stdio(false);
+}
 
+int main_readEvalPrint(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
+	int e = 0;
+	if (!(*g_settings)[settingEnum_repl]->getBool()) return e;
+	static std::string line = "";
+	// std::getline(std::cin, line, '\n');
+	while (true) {
+		char character;
+		std::streamsize length = std::cin.readsome(&character, 1);
+		if (length == 0) break;
+		line += character;
+	}
+	if (line == "") return e;
+	if (line.back() != '\n') return e;
+	e = eval(duckVM, duckLisp, line);
+	line = "";
+	std::cout << "> ";
+	return e;
+}
+
+int main(int argc, char *argv[]){
 	main_parseCommandLineArguments(argc, argv);
 
 	log_init();
@@ -194,6 +223,8 @@ int main(int argc, char *argv[]){
 	                                            ((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
 	                                             * sizeof(dl_uint8_t))));
 	main_loadConfig(configCompiler, configVm);
+
+	main_repl_init();
 
 	// This compiler will be used once and then destroyed.
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
@@ -366,6 +397,8 @@ int main(int argc, char *argv[]){
 			renderGui(guiButtons);
 			SDL_RenderPresent(renderer);
 		}
+
+		main_readEvalPrint(configCompiler, configVm);
 	}
 
 	//Destroying and Quitting

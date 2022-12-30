@@ -323,6 +323,7 @@ extern SettingsList *g_settings;
 	ENTRY(config_vm_max_objects, 1000, lock) \
 	ENTRY(config_file, "../config.dl", lock) \
 	ENTRY(disassemble, false, unlock) \
+	ENTRY(repl, false, unlock) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
@@ -332,6 +333,7 @@ extern SettingsList *g_settings;
 	ENTRY('s', disable_sdl) \
 	ENTRY('l', log_level) \
 	ENTRY('c', config_file) \
+	ENTRY('r', repl) \
 
 #define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) settingEnum_##ENTRY_name,
 enum settingEnum_t {

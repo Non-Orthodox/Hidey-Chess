@@ -120,6 +120,7 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 		error("Failed to compile string. (" + std::string(dl_errorString[loadError]) + ")");
 		return print_errors(&duckLisp->duckLisp.errors);
 	}
+	if (bytecode == nullptr) return 0;
 	if ((*g_settings)[settingEnum_disassemble]->getBool()) {
 		std::cout << duckLisp_disassemble(duckLisp->duckLisp.memoryAllocation, bytecode, bytecode_length) << std::endl;
 	}
