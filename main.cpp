@@ -39,6 +39,22 @@ int main_printHelp(Setting *setting) {
 	return 0;
 }
 
+int main_saveSettings(Setting *setting) {
+	if (setting->getString() != "") {
+		setting->set("");
+		return 0;
+	}
+	info("Saving settings.");
+	std::cout << "Saving settings.";
+	auto saveFileName = (*g_settings)[settingEnum_settings_file]->getString();
+	std::ofstream saveFileStream(saveFileName);
+	for (auto &setting: *g_settings) {
+		saveFileStream << setting.serialize() << std::endl;
+	}
+	std::cout << std::endl;
+	return 0;
+}
+
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 
 	// Initialize settings array.
@@ -61,10 +77,11 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 		SETTINGS_ALIAS_LIST
 	};
 #   undef ENTRY
-	
+
 	// Bind callbacks
 	(*g_settings)[settingEnum_help]->callback = main_printHelp;
-	
+	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
+
 	/*
 	Starting at zero might be wrong, but the program name shouldn't be
 	recognized as an option anyway. I suppose the program name could be renamed

@@ -3,7 +3,7 @@
 #include "settings.h"
 
 int main_callback_repl(Setting *setting) {
-	(void) setting;
+	if (!setting->getBool()) return 0;
 	std::cout << "> ";
 	return 0;
 }
@@ -61,6 +61,16 @@ void writeSetting(const std::string line) {
 	catch (const std::out_of_range &e) {}
 }
 
+void execSetting(const std::string line) {
+	const std::string name = line.substr(1, line.length() - 2);
+	Setting *setting;
+	try {
+		setting = g_settings->find(name);
+		setting->callback(setting);
+	}
+	catch (const std::out_of_range &e) {}
+}
+
 int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
 	int e = 0;
 	if (!(*g_settings)[settingEnum_repl]->getBool()) return e;
@@ -69,9 +79,13 @@ int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<D
 	enum class EntryType {
 		read,
 		write,
+		exec,
 		duckLisp,
 	};
 	auto entryType = [](const std::string line) -> EntryType {
+		if (line[0] == '!') {
+			return EntryType::exec;
+		}
 		if (line[0] != '\\') {
 			return EntryType::duckLisp;
 		}
@@ -88,6 +102,9 @@ int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<D
 		break;
 	case EntryType::write:
 		writeSetting(line);
+		break;
+	case EntryType::exec:
+		execSetting(line);
 		break;
 	case EntryType::duckLisp:
 		e = eval(duckVM, duckLisp, line);

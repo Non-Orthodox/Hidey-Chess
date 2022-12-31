@@ -290,7 +290,7 @@ public:
 		}
 		return string;
 	}
-	std::string toDLString() {
+	std::string serialize() {
 		std::string string = "(setting-set (quote " + this->name + ") ";
 		switch (this->type) {
 		case settingsType_boolean:
@@ -354,6 +354,7 @@ extern SettingsList *g_settings;
 
 #define SETTINGS_LIST \
 	ENTRY(help, "", unlock) \
+	ENTRY(save, "", unlock) \
 	ENTRY(peer_ip_address, "localhost", unlock) \
 	ENTRY(peer_network_port, 2850, unlock) \
 	ENTRY(network_port, 2851, unlock) \
@@ -364,7 +365,8 @@ extern SettingsList *g_settings;
 	ENTRY(config_compiler_heap_size, 1000000, lock) \
 	ENTRY(config_vm_heap_size, 1000000, lock) \
 	ENTRY(config_vm_max_objects, 1000, lock) \
-	ENTRY(config_file, "../config.dl", lock) \
+	ENTRY(config_file, "../autoexec.dl", lock) \
+	ENTRY(settings_file, "../config.dl", lock) \
 	ENTRY(disassemble, false, unlock) \
 	ENTRY(repl, false, unlock) \
 
