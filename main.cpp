@@ -46,7 +46,7 @@ int main_saveSettings(Setting *setting) {
 	}
 	info("Saving settings.");
 	std::cout << "Saving settings.";
-	auto saveFileName = (*g_settings)[settingEnum_settings_file]->getString();
+	auto saveFileName = (*g_settings)[settingEnum_config_file]->getString();
 	std::ofstream saveFileStream(saveFileName);
 	for (auto &setting: *g_settings) {
 		saveFileStream << setting.serialize() << std::endl;
@@ -157,7 +157,7 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 }
 
 int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
-	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
+	std::string configFileName = (*g_settings)[settingEnum_autoexec_file]->getString();
 	if (configFileName == "") return 0;
 	std::ifstream configFileStream(configFileName);
 	std::stringstream configSs;
