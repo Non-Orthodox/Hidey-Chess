@@ -26,6 +26,7 @@ set(CORE core/log.cpp
   core/duck-lisp.cpp
   core/scripting.cpp
   core/render_window.cpp
+  core/repl.cpp
   )
 
 add_library(HideyCore ${CORE})
