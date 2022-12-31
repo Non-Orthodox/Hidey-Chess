@@ -227,7 +227,9 @@ int main (int argc, char *argv[]) {
     if (!(IMG_Init(IMG_INIT_PNG)))
         std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
 
-    RenderWindow window("GAME v0.01", 1280, 720);
+    RenderWindow window("GAME v0.01",
+                        (*g_settings)[settingEnum_window_width]->getInt(),
+                        (*g_settings)[settingEnum_window_height]->getInt());
     // std::cout << window.getRefreshRate() << "\n";
 
 	//Variables used for main while loop

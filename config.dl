@@ -9,3 +9,5 @@
 (setting-set (quote config_file) "../config.dl")
 (setting-set (quote disassemble) false)
 (setting-set (quote repl) true)
+(setting-set (quote window_width) 1280)
+(setting-set (quote window_height) 720)

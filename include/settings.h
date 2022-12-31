@@ -371,6 +371,8 @@ extern SettingsList *g_settings;
 	ENTRY(config_file, "../config.dl", lock, save) \
 	ENTRY(disassemble, false, unlock, save) \
 	ENTRY(repl, false, unlock, save) \
+	ENTRY(window_width, 640, unlock, save) \
+	ENTRY(window_height, 480, unlock, save) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
