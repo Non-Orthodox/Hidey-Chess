@@ -49,38 +49,60 @@ int main_saveSettings(Setting *setting) {
 	auto saveFileName = (*g_settings)[settingEnum_config_file]->getString();
 	std::ofstream saveFileStream(saveFileName);
 	for (auto &setting: *g_settings) {
+		if (!setting.save) continue;
 		saveFileStream << setting.serialize() << std::endl;
 	}
 	std::cout << std::endl;
 	return 0;
 }
 
-void main_parseCommandLineArguments(int argc, char *argv[]) {
+int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
+	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
+	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
+	if (configFileName == "") return 0;
+	std::ifstream configFileStream(configFileName);
+	std::stringstream configSs;
+	configSs << configFileStream.rdbuf();
+	std::string configString = "((;) " + configSs.str() + ")";
+	return eval(duckVM, duckLisp, configString);
+}
 
+void main_initializeSettings() {
 	// Initialize settings array.
 	g_settings = new SettingsList();
-	
+
 	// Register settings.
-#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) g_settings->insert(#ENTRY_name, ENTRY_value);
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock, ENTRY_save) g_settings->insert(#ENTRY_name, ENTRY_value);
 		SETTINGS_LIST
 #undef ENTRY
 
+	// Mark some settings as unsaveable (e.g. commands).
+	{
+		bool save = true;
+		bool dont_save = false;
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock, ENTRY_save) \
+			(*g_settings)[settingEnum_##ENTRY_name]->save = ENTRY_save;
+			SETTINGS_LIST
+#undef ENTRY
+	}
+
+	// Bind callbacks
+	(*g_settings)[settingEnum_help]->callback = main_printHelp;
+}
+
+void main_parseCommandLineArguments(int argc, char *argv[]) {
 	// Define option aliases.
 #   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
 	char letterOptions[] = {
 		SETTINGS_ALIAS_LIST
 	};
 #   undef ENTRY
-	
+
 #   define ENTRY(ENTRY_letter, ENTRY_name) #ENTRY_name,
 	std::string optionsAliases[] = {
 		SETTINGS_ALIAS_LIST
 	};
 #   undef ENTRY
-
-	// Bind callbacks
-	(*g_settings)[settingEnum_help]->callback = main_printHelp;
-	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
 
 	/*
 	Starting at zero might be wrong, but the program name shouldn't be
@@ -151,12 +173,12 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	}
 
 	// Lock some settings to prevent the user from crashing the engine.
-#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) (*g_settings)[settingEnum_##ENTRY_name]->ENTRY_lock();
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock, ENTRY_save) (*g_settings)[settingEnum_##ENTRY_name]->ENTRY_lock();
 	SETTINGS_LIST
 #undef ENTRY
 }
 
-int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
+int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
 	std::string configFileName = (*g_settings)[settingEnum_autoexec_file]->getString();
 	if (configFileName == "") return 0;
 	std::ifstream configFileStream(configFileName);
@@ -170,11 +192,14 @@ int main_loadConfig(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> 
 }
 
 int main (int argc, char *argv[]) {
-	main_parseCommandLineArguments(argc, argv);
-
-	Repl repl{};
+	main_initializeSettings();
 
 	log_init();
+
+	// Prevent config files from changing these.
+	(*g_settings)[settingEnum_config_compiler_heap_size]->lock();
+	(*g_settings)[settingEnum_config_vm_heap_size]->lock();
+	(*g_settings)[settingEnum_config_vm_max_objects]->lock();
 
 	// This compiler and VM will be used to read config files and run a jank REPL.
 	std::shared_ptr<DuckLisp> configCompiler(new DuckLisp((*g_settings)[settingEnum_config_compiler_heap_size]->getInt()
@@ -183,7 +208,16 @@ int main (int argc, char *argv[]) {
 	                                             * sizeof(dl_uint8_t)),
 	                                            ((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
 	                                             * sizeof(dl_uint8_t))));
-	main_loadConfig(configCompiler, configVm);
+	registerCallback(configVm, configCompiler, "print", script_callback_print);
+	registerCallback(configVm, configCompiler, "setting-get", script_callback_get);
+	registerCallback(configVm, configCompiler, "setting-set", script_callback_set);
+
+	// Precedence is "config.dl", "autoexec.dl", then CLI. The last change is the one that applies.
+	main_loadSettings(configCompiler, configVm);
+	main_loadAutoexec(configCompiler, configVm);
+	main_parseCommandLineArguments(argc, argv);
+
+	Repl repl{};
 
 	// This compiler will be used once and then destroyed.
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()

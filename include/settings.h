@@ -28,8 +28,10 @@ private:
 	bool locked;
 	void constantInit() {
 		this->locked = false;
+		this->save = true;
 	}
 public:
+	bool save;
 	std::string name;
 	settingsType_t type = settingsType_boolean;
 	int (*callback)(Setting *) = nullptr;
@@ -353,22 +355,22 @@ extern SettingsList *g_settings;
 /* Settings */
 
 #define SETTINGS_LIST \
-	ENTRY(help, "", unlock) \
-	ENTRY(save, "", unlock) \
-	ENTRY(peer_ip_address, "localhost", unlock) \
-	ENTRY(peer_network_port, 2850, unlock) \
-	ENTRY(network_port, 2851, unlock) \
-	ENTRY(disable_sdl, false, lock) \
-	ENTRY(log_level, 5, unlock) \
-	ENTRY(log_file, "", unlock) \
-	ENTRY(game_compiler_heap_size, 1000000, unlock) \
-	ENTRY(config_compiler_heap_size, 1000000, lock) \
-	ENTRY(config_vm_heap_size, 1000000, lock) \
-	ENTRY(config_vm_max_objects, 1000, lock) \
-	ENTRY(autoexec_file, "../autoexec.dl", lock) \
-	ENTRY(config_file, "../config.dl", lock) \
-	ENTRY(disassemble, false, unlock) \
-	ENTRY(repl, false, unlock) \
+	ENTRY(help, "", unlock, dont_save) \
+	ENTRY(save, "", unlock, dont_save) \
+	ENTRY(peer_ip_address, "localhost", unlock, save) \
+	ENTRY(peer_network_port, 2850, unlock, save) \
+	ENTRY(network_port, 2851, unlock, save) \
+	ENTRY(disable_sdl, false, lock, save) \
+	ENTRY(log_level, 5, unlock, save) \
+	ENTRY(log_file, "", unlock, save) \
+	ENTRY(game_compiler_heap_size, 1000000, unlock, save) \
+	ENTRY(config_compiler_heap_size, 1000000, lock, dont_save) \
+	ENTRY(config_vm_heap_size, 1000000, lock, dont_save) \
+	ENTRY(config_vm_max_objects, 1000, lock, dont_save) \
+	ENTRY(autoexec_file, "../autoexec.dl", lock, save) \
+	ENTRY(config_file, "../config.dl", lock, save) \
+	ENTRY(disassemble, false, unlock, save) \
+	ENTRY(repl, false, unlock, save) \
 
 #define SETTINGS_ALIAS_LIST \
 	ENTRY('h', help) \
@@ -377,10 +379,9 @@ extern SettingsList *g_settings;
 	ENTRY('n', network_port) \
 	ENTRY('s', disable_sdl) \
 	ENTRY('l', log_level) \
-	ENTRY('c', config_file) \
 	ENTRY('r', repl) \
 
-#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock) settingEnum_##ENTRY_name,
+#define ENTRY(ENTRY_name, ENTRY_value, ENTRY_lock, ENTRY_save) settingEnum_##ENTRY_name,
 enum settingEnum_t {
 	SETTINGS_LIST
 };
