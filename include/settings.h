@@ -290,6 +290,26 @@ public:
 		}
 		return string;
 	}
+	std::string toDLString() {
+		std::string string = "(setting-set (quote " + this->name + ") ";
+		switch (this->type) {
+		case settingsType_boolean:
+			string += std::string(this->getBool() ? "true" : "false");
+			break;
+		case settingsType_integer:
+			string += std::to_string(this->getInt());
+			break;
+		case settingsType_float:
+			string += std::to_string(this->getFloat());
+			break;
+		case settingsType_string:
+			string += std::string("\"") + this->getString() + "\"";
+			break;
+		default:
+			string += "?::?";
+		}
+		return string + ")";
+	}
 	bool lock() {
 		this->locked = true;
 		return this->locked;
