@@ -22,13 +22,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIRECTORY}")
 option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # Core Library
-set(CORE core/piece.cpp
-  core/SDLevents.cpp
-  core/basicVisuals.cpp
-  core/board.cpp
-  core/log.cpp
+set(CORE core/log.cpp
   core/duck-lisp.cpp
   core/scripting.cpp
+  core/render_window.cpp
   )
 
 add_library(HideyCore ${CORE})

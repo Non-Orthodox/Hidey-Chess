@@ -8,20 +8,17 @@
 #include <map>
 #include <memory>
 #include <fstream>
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+
 #include "settings.h"
-#include "SDLevents.h"
 #include "defer.hpp"
-#include "piece.h"
-#include "basicVisuals.h"
 #include "types.h"
-#include "board.h"
-// #include "controller.h"
-#include "gui.h"
 #include "log.h"
 #include "duck-lisp.hpp"
 #include "scripting.hpp"
+#include "render_window.hpp"
 
 SettingsList *g_settings;
 
@@ -210,7 +207,7 @@ int main_readEvalPrint(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckV
 	return e;
 }
 
-int main(int argc, char *argv[]){
+int main (int argc, char *argv[]) {
 	main_parseCommandLineArguments(argc, argv);
 
 	log_init();
@@ -230,154 +227,51 @@ int main(int argc, char *argv[]){
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 	                                                     * sizeof(dl_uint8_t)));
 
-	// Don't use "board_width" and "board_height" after this. They could change, and that will mess a ton of stuff up.
-	const int boardWidth = 8;
-	const int boardHeight = 8;
-	
-	SDL_Window* window = nullptr;
-	SDL_Renderer* renderer = nullptr;
 
-	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+        std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
+    
+    if (!(IMG_Init(IMG_INIT_PNG)))
+        std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
 
-		//Initializing SDL
-		if (SDL_Init(SDL_INIT_VIDEO) != 0)
-		{
-			critical_error("SDL failed to initialize | SDL_Error " + std::string(SDL_GetError()));
-			return 1; //later on use an exception
-		}
-	
-		//Initializing SDL_image
-		if(IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) //can add additional image file types here
-		{
-			critical_error("SDL_image failed to initialize");
-			return 1; //later on use an exception
-		}
-		
-		//Creating Window
-		window = SDL_CreateWindow("Hidey-Chess", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_RESIZABLE);
-		if (window == nullptr) 
-		{
-			critical_error("Window could not be created | SDL_Error " + std::string(SDL_GetError()));
-			return 1;
-		}
-	
-		//Creating Renderer
-		renderer = SDL_CreateRenderer(window, -1, 0);
-		if (renderer == nullptr) 
-		{
-			// std::cerr << "Error:  << std::endl;
-			critical_error("Renderer could not be created | SDL_Error " + std::string(SDL_GetError()));
-			return 1;
-		}
-		
-	}
-
-	//Setting team colors
-	color_t p1Color, p2Color;
-	p1Color.red = 0;
-	p1Color.green = 0;
-	p1Color.blue = 0;
-	p2Color.red = 255;
-	p2Color.green = 255;
-	p2Color.blue = 255;
-	
-
-    //testing Section for images
-    // SDL_Rect rect;
-    // rect.h = rect.w = 50;
-    // rect.x = rect.y = 100;
-    // SDL_Surface* surface = IMG_Load("../res/knight.png");
-    // int er;
-    // er = SDL_SetSurfaceColorMod(surface, 0x00, 0x00, 0xFF);
-    // SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    // SDL_RenderCopy(renderer, texture, nullptr, &rect);
-
-	//testing Section for images
-	// SDL_Rect rect;
-	// rect.h = rect.w = 50;
-	// rect.x = rect.y = 100;
-	// SDL_Surface* surface = IMG_Load("../res/image.png");
-	// SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-	// SDL_RenderCopy(renderer, texture, nullptr, &rect);
-
-
-
+    RenderWindow window("GAME v0.01", 1280, 720);
+    // std::cout << window.getRefreshRate() << "\n";
 
 	//Variables used for main while loop
-	SDL_Event event;
-	int run = 1;
-	int winWidth, winHeight = 0; //used to store window dimensions
-	gameState GAME_STATE = MAIN_MENU;
-	board board(8,8);
-	std::vector<Button> boardButtons;
-	std::vector<Button> guiButtons;
-	SDL_Rect tempRect;
-	
-	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
-		SDL_GetWindowSize(window, &winWidth, &winHeight);
-	}
-	
-	tempRect.w = winHeight/12;
-	tempRect.h = winHeight/12;
-	
-	for (int y = 0; y < boardHeight; y++) {
-		for (int x = 0; x < boardWidth; x++) {
-			tempRect.x = winHeight/2 - boardWidth/2*tempRect.w + x*tempRect.w;
-			tempRect.y = winHeight/2 - boardHeight/2*tempRect.h + y*tempRect.h;
-			boardButtons.push_back(Button("x" + std::to_string(x) + "y" + std::to_string(y), renderer, tempRect));
-			// Toggle switch.
-			boardButtons.back().toggle = true;
-			// Toggle on button release.
-			boardButtons.back().toggleOnUp = false;
-			// Colors.
-			const color_t colorWhitePressed = {0xBF, 0xBF, 0xBF};
-			const color_t colorBlackPressed = {0x40, 0x40, 0x40};
-			const color_t colorWhiteReleased = {0xFF, 0xFF, 0xFF};
-			const color_t colorBlackReleased = {0x00, 0x00, 0x00};
-			boardButtons.back().pressedColor = ((x ^ y) & 1) ? colorWhitePressed : colorBlackPressed;
-			boardButtons.back().releasedColor = ((x ^ y) & 1) ? colorWhiteReleased : colorBlackReleased;
-		}
-	}
-	
-	tempRect.x = 50;
-	tempRect.y = 50;
-	guiButtons.push_back(Button("singleplayer", renderer, tempRect));
-	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
-	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
-	
-	tempRect.x = 50;
-	tempRect.y = 150;
-	guiButtons.push_back(Button("multiplayer", renderer, tempRect));
-	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
-	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
-	
-	while(run)
+	bool gameRunning = true;
+    SDL_Event event;
+	gameState GAME_STATE = SINGLEPLAYER;
+
+	SDL_Texture* testTexture = window.loadTexture("../res/chess/images/knight.png");
+	SDL_Rect dstrect;
+	dstrect.x = 400;
+	dstrect.y = 100;
+	dstrect.w = 512;
+	dstrect.h = 512;
+
+	while(gameRunning)
 	{
 		switch(GAME_STATE)
 		{
 			case MAIN_MENU:
-				
-				run = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
+				// gameRunning = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
 				if (GAME_STATE == SINGLEPLAYER) {
 					debug("Now in Singleplayer");
-					standardChessBoardInit(&board);
-					printChessBoard(&board);
+					//! INIT GAME
 				}
 				else if (GAME_STATE == MULTIPLAYER) {
 					debug("Now in Multiplayer");
+					//! INIT GAME
 				}
 				break;
 
 			case MULTIPLAYER:
-				run = !MP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
+				// gameRunning = !MP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
 			case SINGLEPLAYER:
-				// renderBoard_button(boardButtons, boardWidth, boardHeight);
-				// SDL_RenderPresent(renderer);
-
-				//run = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
+				// gameRunning = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
 			//console mode is for testing the game without using graphics
@@ -385,30 +279,30 @@ int main(int argc, char *argv[]){
 				break;
 
 			case QUIT_STATE:
-				run = 0;
+				gameRunning = 0;
 				break;
 
 			default:
 				break;
 		}
 
-		if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
-			renderBoard_button(boardButtons, boardWidth, boardHeight);
-			renderGui(guiButtons);
-			SDL_RenderPresent(renderer);
-		}
+		// Temporary event handler
+		while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT)
+                gameRunning = false;
+        }
+
+		window.clear();
+        window.render(testTexture, dstrect);
+        window.display();
 
 		main_readEvalPrint(configCompiler, configVm);
 	}
 
 	//Destroying and Quitting
-	if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
-		SDL_DestroyRenderer(renderer);
-		SDL_DestroyWindow(window);
-		window = nullptr;
-		IMG_Quit();
-		SDL_Quit();
-	}
+	window.CleanUp();
+	IMG_Quit();
+    SDL_Quit();
 
 	return 0;
 }

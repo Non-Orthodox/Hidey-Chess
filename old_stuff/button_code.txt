@@ -1,0 +1,47 @@
+// Code that was removed from main. This file exists in case the code may be recycled.
+    
+    std::vector<Button> boardButtons;
+	std::vector<Button> guiButtons;
+	SDL_Rect tempRect;
+	
+	tempRect.w = winHeight/12;
+	tempRect.h = winHeight/12;
+	
+	for (int y = 0; y < boardHeight; y++) {
+		for (int x = 0; x < boardWidth; x++) {
+			tempRect.x = winHeight/2 - boardWidth/2*tempRect.w + x*tempRect.w;
+			tempRect.y = winHeight/2 - boardHeight/2*tempRect.h + y*tempRect.h;
+			boardButtons.push_back(Button("x" + std::to_string(x) + "y" + std::to_string(y), renderer, tempRect));
+			// Toggle switch.
+			boardButtons.back().toggle = true;
+			// Toggle on button release.
+			boardButtons.back().toggleOnUp = false;
+			// Colors.
+			const color_t colorWhitePressed = {0xBF, 0xBF, 0xBF};
+			const color_t colorBlackPressed = {0x40, 0x40, 0x40};
+			const color_t colorWhiteReleased = {0xFF, 0xFF, 0xFF};
+			const color_t colorBlackReleased = {0x00, 0x00, 0x00};
+			boardButtons.back().pressedColor = ((x ^ y) & 1) ? colorWhitePressed : colorBlackPressed;
+			boardButtons.back().releasedColor = ((x ^ y) & 1) ? colorWhiteReleased : colorBlackReleased;
+		}
+	}
+	
+	tempRect.x = 50;
+	tempRect.y = 50;
+	guiButtons.push_back(Button("singleplayer", renderer, tempRect));
+	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
+	
+	tempRect.x = 50;
+	tempRect.y = 150;
+	guiButtons.push_back(Button("multiplayer", renderer, tempRect));
+	guiButtons.back().pressedColor = {0x00, 0x7F, 0x00};
+	guiButtons.back().releasedColor = {0x00, 0xBF, 0x00};
+
+
+
+		if (!(*g_settings)[settingEnum_disable_sdl]->getBool()) {
+			renderBoard_button(boardButtons, boardWidth, boardHeight);
+			renderGui(guiButtons);
+			SDL_RenderPresent(renderer);
+		}
