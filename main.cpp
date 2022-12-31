@@ -24,42 +24,16 @@
 SettingsList *g_settings;
 
 int main_printHelp(Setting *setting) {
-	(void) setting;
+	// Prevent infinite recursion ahahaha.
+	if (setting->getString() != "") {
+		setting->set("");
+		return 0;
+	}
 	std::cout << "Help:" << std::endl;
 	std::cout << "Variables can be set on the command line using \"--variable=value\" notation." << std::endl;
 	std::cout << "Settings {" << std::endl;
 	for (auto &setting: *g_settings) {
-		std::cout << setting.name
-		          << "::";
-		std::cout << ((setting.type == settingsType_boolean)
-		              ? "Boolean"
-		              : (setting.type == settingsType_integer)
-		              ? "Integer"
-		              : (setting.type == settingsType_float)
-		              ? "Float"
-		              : (setting.type == settingsType_string)
-		              ? "String"
-		              : "?");
-		std::cout << " = ";
-		if (setting.type == settingsType_boolean) {
-			std::cout << (setting.getBool() ? "True" : "False");
-		}
-		else if (setting.type == settingsType_integer) {
-			std::cout << setting.getInt();
-		}
-		else if (setting.type == settingsType_float) {
-			std::cout << setting.getFloat();
-		}
-		else if (setting.type == settingsType_string) {
-			std::cout << "\"" << setting.getString() << "\"";
-		}
-		else {
-			std::cout << "?";
-		}
-		if (setting.callback != NULL) {
-			std::cout << ", CALLBACK";
-		}
-		std::cout << std::endl;
+		std::cout << setting.name << " = " << setting.prettyPrint() << std::endl;
 	}
 	std::cout << "}" << std::endl;
 	return 0;

@@ -267,6 +267,29 @@ public:
 			return 2;
 		}
 	}
+	std::string prettyPrint() {
+		std::string string = "";
+		switch (this->type) {
+		case settingsType_boolean:
+			string += std::string(this->getBool() ? "True" : "False") + "::Boolean";
+			break;
+		case settingsType_integer:
+			string += std::to_string(this->getInt()) + "::Integer";
+			break;
+		case settingsType_float:
+			string += std::to_string(this->getFloat()) + "::Float";
+			break;
+		case settingsType_string:
+			string += std::string("\"") + this->getString() + "\"::String";
+			break;
+		default:
+			string += "?::?";
+		}
+		if (this->callback != nullptr) {
+			string += ", CALLBACK";
+		}
+		return string;
+	}
 	bool lock() {
 		this->locked = true;
 		return this->locked;
