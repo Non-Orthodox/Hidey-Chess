@@ -19,21 +19,30 @@ Repl::~Repl() {
 
 }
 
-int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
-	int e = 0;
-	if (!(*g_settings)[settingEnum_repl]->getBool()) return e;
+std::string getline_nonblocking() {
 	static std::string line = "";
-	// std::getline(std::cin, line, '\n');
+	auto entered = [](std::string line) {
+		return ((line != "") && (line.back() == '\n'));
+	};
+	if (entered(line)) {
+		line = "";
+	}
 	while (true) {
 		char character;
 		std::streamsize length = std::cin.readsome(&character, 1);
 		if (length == 0) break;
 		line += character;
 	}
+	if (!entered(line)) return "";
+	return line;
+}
+
+int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
+	int e = 0;
+	if (!(*g_settings)[settingEnum_repl]->getBool()) return e;
+	std::string line = getline_nonblocking();
 	if (line == "") return e;
-	if (line.back() != '\n') return e;
 	e = eval(duckVM, duckLisp, line);
-	line = "";
 	std::cout << "> ";
 	return e;
 }
