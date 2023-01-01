@@ -132,3 +132,19 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 	}
 	return 0;
 }
+
+int funcall(std::shared_ptr<DuckVM> duckVM, unsigned char *bytecode, duckLisp_object_t *closure) {
+	dl_error_t e = dl_error_ok;
+	dl_error_t loadError;
+	dl_error_t runtimeError;
+	dl_size_t bytecode_length = 0;
+
+	if (bytecode == nullptr) return 0;
+	duckLisp_object_t *return_value = nullptr;
+	runtimeError = duckVM_funcall(&duckVM->duckVM, return_value, bytecode, closure);
+	if (runtimeError) {
+		error("VM encountered a runtime error. (" + std::string(dl_errorString[runtimeError]) + ")");
+		return print_errors(&duckVM->duckVM.errors);
+	}
+	return 0;
+}
