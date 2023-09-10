@@ -2,6 +2,7 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 extern "C" {
 #include "duck-lisp/DuckLib/memory.h"
 #include "duck-lisp/duckLisp.h"
@@ -14,7 +15,7 @@ public:
 	DuckLisp(const std::size_t);
 	~DuckLisp();
 	int registerGenerator();
-	int registerCallback(std::ptrdiff_t *index, std::string name);
+	int registerCallback(std::string name, dl_error_t (*callback)(duckVM_t *));
 };
 
 class DuckVM {
@@ -23,8 +24,8 @@ public:
 	dl_memoryAllocation_t memoryAllocation;
 	DuckVM(const std::size_t, const std::size_t);
 	~DuckVM();
-	int registerCallback(const std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));
-	int eval(const std::string);
+	int registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));
+	int funcall(unsigned char *bytecode, duckVM_object_t *closure, std::vector<duckVM_object_t> objects);
 };
 
 int registerCallback(std::shared_ptr<DuckVM> duckVM,
@@ -32,4 +33,3 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
                      const std::string name,
                      dl_error_t (*callback)(duckVM_t *));
 int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string);
-int funcall(std::shared_ptr<DuckVM> duckVM, duckLisp_object_t *closure);

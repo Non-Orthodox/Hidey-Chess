@@ -63,7 +63,7 @@ int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::ifstream configFileStream(configFileName);
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
-	std::string configString = "((;) " + configSs.str() + ")";
+	std::string configString = "(()\n" + configSs.str() + ")";
 	return eval(duckVM, duckLisp, configString);
 }
 
@@ -184,7 +184,7 @@ int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::ifstream configFileStream(configFileName);
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
-	std::string configString = "((;) " + configSs.str() + ")";
+	std::string configString = "(()\n" + configSs.str() + ")";
 	return eval(duckVM, duckLisp, configString);
 }
 
