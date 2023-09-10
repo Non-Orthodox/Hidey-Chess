@@ -107,7 +107,6 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 	dl_error_t runtimeError;
 	unsigned char *bytecode = nullptr;
 	dl_size_t bytecode_length = 0;
-	std::cout << source << std::endl;
 	loadError = duckLisp_loadString(&duckLisp->duckLisp,
 	                                &bytecode,
 	                                &bytecode_length,

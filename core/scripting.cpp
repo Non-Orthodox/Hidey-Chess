@@ -357,7 +357,7 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 		setting->set((bool) duckVM_object_getBoolean(object2));
 	}
 	else if ((settingType == settingsType_integer) && (objectType == duckVM_object_type_integer)) {
-		setting->set(static_cast<int>((int) duckVM_object_getInteger(object2)));
+		setting->set(static_cast<int>(duckVM_object_getInteger(object2)));
 	}
 	else if ((settingType == settingsType_string) && (objectType == duckVM_object_type_string)) {
 		dl_uint8_t *string = nullptr;
