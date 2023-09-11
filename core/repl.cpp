@@ -66,7 +66,12 @@ void execSetting(const std::string line) {
 	Setting *setting;
 	try {
 		setting = g_settings->find(name);
-		setting->callback(setting);
+		if (setting->callback) {
+			setting->callback(setting);
+		}
+		else {
+			std::cout << "\"" + name + "\" does not have a callback." << std::endl;
+		}
 	}
 	catch (const std::out_of_range &e) {}
 }
@@ -107,7 +112,7 @@ int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<D
 		execSetting(line);
 		break;
 	case EntryType::duckLisp:
-		e = eval(duckVM, duckLisp, line);
+		e = eval(duckVM, duckLisp, "(() " + line + ")");
 		break;
 	default:
 		break;

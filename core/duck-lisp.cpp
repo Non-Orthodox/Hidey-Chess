@@ -48,8 +48,15 @@ DuckLisp::~DuckLisp() {
 	FREE(duckLisp.memoryAllocation->memory);
 }
 
-int DuckLisp::registerCallback(std::string name, dl_error_t (*callback)(duckVM_t *)) {
-	dl_error_t e = duckLisp_linkCFunction(&duckLisp, callback, (dl_uint8_t *) name.c_str(), name.size());
+int DuckLisp::registerCallback(const std::string name,
+                               const std::string typeString,
+                               dl_error_t (*callback)(duckVM_t *)) {
+	dl_error_t e = duckLisp_linkCFunction(&duckLisp,
+	                                      callback,
+	                                      (dl_uint8_t *) name.c_str(),
+	                                      name.size(),
+	                                      (dl_uint8_t *) typeString.c_str(),
+	                                      typeString.size());
 	return e;
 }
 
@@ -90,10 +97,11 @@ int DuckVM::registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM
 int registerCallback(std::shared_ptr<DuckVM> duckVM,
                      std::shared_ptr<DuckLisp> duckLisp,
                      const std::string name,
+                     const std::string typeString,
                      dl_error_t (*callback)(duckVM_t *)) {
 	int error = 0;
 	std::ptrdiff_t index;
-	error = duckLisp->registerCallback(name, callback);
+	error = duckLisp->registerCallback(name, typeString, callback);
 	if (error) return error;
 	error = duckVM->registerCallback(duckLisp_symbol_nameToValue(&duckLisp->duckLisp,
 	                                                             (dl_uint8_t *) name.c_str(),
@@ -108,6 +116,7 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 	unsigned char *bytecode = nullptr;
 	dl_size_t bytecode_length = 0;
 	loadError = duckLisp_loadString(&duckLisp->duckLisp,
+	                                true,
 	                                &bytecode,
 	                                &bytecode_length,
 	                                (dl_uint8_t *) source.c_str(),

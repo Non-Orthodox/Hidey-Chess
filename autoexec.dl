@@ -1,24 +1,24 @@
 (__defun println (m)
-         (print m)
-         (print "\n")
+         print m
+         print "\n"
          m)
 
 (__defmacro g (variable)
-  ;; Get value of setting.
-  (__list (__quote setting-get) (__list (__quote __quote) variable)))
+            ;; Get value of setting.
+            (__list (__quote #setting-get) (__list (__quote #__quote) variable)))
 (__defmacro s (variable value)
-  ;; Set value of setting.
-  (__list (__quote setting-set) (__list (__quote __quote) variable) value))
+            ;; Set value of setting.
+            (__list (__quote #setting-set) (__list (__quote #__quote) variable) value))
 (__defmacro c (variable)
-  ;; Run callback of setting without changing its value.
-  (__list (__quote s) variable (__list (__quote g) variable)))
+            ;; Run callback of setting without changing its value.
+            (__list (__quote #s) variable (__list (__quote #g) variable)))
 
-(__var log-level-debug 5)
-(__var log-level-info 4)
-(__var log-level-warning 3)
-(__var log-level-error 2)
-(__var log-level-critical-error 1)
-(__var log-level-disabled 0)
+__global log-level-debug 5
+__global log-level-info 4
+__global log-level-warning 3
+__global log-level-error 2
+__global log-level-critical-error 1
+__global log-level-disabled 0
 
 ;; (s log_level log-level-debug)
 ;; (s log_file "hidey-chess.log")

@@ -29,6 +29,8 @@ set(CORE core/log.cpp
   core/repl.cpp
   )
 
+add_definitions(-DUSE_PARENTHESIS_INFERENCE)
+
 add_library(HideyCore ${CORE})
 target_include_directories(HideyCore
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}

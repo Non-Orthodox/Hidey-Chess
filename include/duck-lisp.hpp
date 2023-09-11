@@ -15,7 +15,7 @@ public:
 	DuckLisp(const std::size_t);
 	~DuckLisp();
 	int registerGenerator();
-	int registerCallback(std::string name, dl_error_t (*callback)(duckVM_t *));
+	int registerCallback(const std::string name, const std::string typeString, dl_error_t (*callback)(duckVM_t *));
 };
 
 class DuckVM {
@@ -31,5 +31,6 @@ public:
 int registerCallback(std::shared_ptr<DuckVM> duckVM,
                      std::shared_ptr<DuckLisp> duckLisp,
                      const std::string name,
+                     const std::string typeString,
                      dl_error_t (*callback)(duckVM_t *));
 int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string);

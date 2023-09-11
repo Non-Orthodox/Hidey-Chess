@@ -205,9 +205,9 @@ int main (int argc, char *argv[]) {
 	                                             * sizeof(dl_uint8_t)),
 	                                            ((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
 	                                             * sizeof(dl_uint8_t))));
-	registerCallback(configVm, configCompiler, "print", script_callback_print);
-	registerCallback(configVm, configCompiler, "setting-get", script_callback_get);
-	registerCallback(configVm, configCompiler, "setting-set", script_callback_set);
+	registerCallback(configVm, configCompiler, "print", "(I)", script_callback_print);
+	registerCallback(configVm, configCompiler, "setting-get", "(I)", script_callback_get);
+	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
 
 	// Precedence is "config.dl", "autoexec.dl", then CLI. The last change is the one that applies.
 	main_loadSettings(configCompiler, configVm);

@@ -1,158 +1,19 @@
-(comment Create global variables and constants.)
+(include "library.dl")
 
-(comment `status-ok' and `status-error' are constants. Don't modify them.)
-(var status-ok true)
-(var status-error false)
+;; These are examples. See "duck-lisp/language.md" and "duck-lisp/language-reference.md" for details. `defgfun' is
+;; defined by the library above. Be sure to look that over as well. There's little documentation in there, but many of
+;; those functions are defined in Common Lisp as well. If you're lucky, the Common Lisp HyperSpec might even have an
+;; intelligible entry on it.
 
-(var black 0)
-(var white 1)
+(defgfun init ()
+         true)
 
-(defun other-player (type)
-  (if (= type black) white black))
+(defgfun move (move-type player current-piece destination-piece)
+         (var return-status true)
+         (var win false)
+         (var valid true)
 
-(comment Using integers instead of symbols so the engine doesn't have to do string compares. It's also easier to type.)
-(comment I should write an `enum' macro.)
-(var piece-empty 0)
-(var piece-pawn 1)
-(var piece-rook 2)
-(var piece-knight 3)
-(var piece-bishop 4)
-(var piece-queen 5)
-(var piece-king 6)
+         (vector return-status win valid))
 
-(defun make-vec-2 (x y)
-  (cons x y))
-(defun vec-2-get-x (vec)
-  (car vec))
-(defun vec-2-get-y (vec)
-  (cdr vec))
-
-(defun make-piece (owner type origin visible)
-  (comment (integer integer vec-2 boolean))
-  (vector type origin visible owner))
-(defun piece-get-type (piece)
-  (get-vector-element piece 0))
-(defun piece-get-position (piece)
-  (get-vector-element piece 1))
-(defun piece-get-x (piece)
-  (vec-2-get-x (get-vector-element piece 1)))
-(defun piece-get-y (piece)
-  (vec-2-get-y (get-vector-element piece 1)))
-(defun piece-get-visibility (piece)
-  (get-vector-element piece 2))
-(defun piece-get-owner (piece)
-  (get-vector-element piece 3))
-
-
-(comment Engine will handle movement. Game will change movement settings.
-         Engine will assume it is the next player's turn after a movement.
-         Player will select a move. Selection is done entirely by the engine.
-         Game will change settings of pieces and settings of the game.
-
-         Required by Chess:
-         Game can indicate a win by a player.
-         Game can indicate whether the move is valid.
-         Game can change the visibility of the current piece.
-         Game can move pieces. This allows for castling.
-         Game can explicitly mark a piece as captured/deleted. This allows for En passant.
-
-         Required by Checkers:
-         Game can skip or delay the other player's turn. Skip == delay. This allows for double/triple/etc. jumps.
-         Game can change the type of a piece. This allows for crowning men.)
-
-(comment Engine callbacks:
-         (defun piece-set-visibility (piece visible))
-         (comment `move' not `set-position' since capturing automatically occurs.)
-         (defun piece-move (destination origin))
-         (defun piece-capture (piece))
-         (defun piece-set-type (piece type))
-         (defun board-get-piece-at (position))
-         (defun board-set-piece-at (position piece)))
-
-(comment Movement is mostly functional, so let's keep the representation functional.
-         The engine will expect to be returned a vector of movement flags.
-         Operations on pieces will not be functional because that is not the goal.)
-
-
-
-(
- (comment Set initial board state.)
-
- (var empty piece-empty)
- (var pawn piece-pawn)
- (var rook piece-rook)
- (var knight piece-knight)
- (var bishop piece-bishop)
- (var queen piece-queen)
- (var king piece-king)
-
- (var power-row (vector rook knight bishop queen king bishop knight rook))
- (var pawn-row (make-vector 8 pawn))
- (var empty-row (make-vector 8 empty))
- (var initial-board (vector power-row
-                            pawn-row
-                            empty-row
-                            empty-row
-                            empty-row
-                            empty-row
-                            pawn-row
-                            power-row))
-
- (var y 0)
- (while (< y 8)
-   (var owner (if (< y 4) white black))
-   (var x 0)
-   (while (< x 8)
-     (var position (make-vec-2 x y))
-     (board-set-piece-at position
-                         (make-piece owner
-                                     (get-vector-element (get-vector-element initial-board y) x)
-                                     position
-                                     true))
-     (setq x (+ x 1)))
-   (setq y (+ y 1))))
-
-(comment Return all relevant functions to the engine so that it knows what to call. The required number and order is set
-         in the engine.)
-
-(defun move (player current-piece destination-piece)
-  (var win false)
-  (var valid false)
-  (var skip-turn false)
-  (defun return-move-status ()
-    (vector win valid skip-turn))
-
-  (var current-owner (piece-get-owner current-piece))
-  (var current-type (piece-get-type current-piece))
-
-  (comment Can't move onto your own piece, and can't move the other player's piece.)
-  (when (or (= current-type piece-empty)
-            (and (!= player (piece-get-owner destination-piece))
-                 (= player current-owner)))
-
-    (comment `defun's are wrapped in a scope, so they will not pollute the namespace.
-             Order must match the above enum.)
-    (funcall (get-vector-element (vector ((defun handle-empty ()
-                                            (comment Can't move empty space.)
-                                            ()))
-                                         ((defun handle-pawn ()
-                                            (comment This will be fun.)
-                                            ()))
-                                         ((defun handle-rook ()
-                                            (comment Have to do something like ray tracing.)
-                                            ()))
-                                         ((defun handle-knight ()
-                                            (comment Second easiest piece.)
-                                            ()))
-                                         ((defun handle-bishop ()
-                                            ()))
-                                         ((defun handle-queen ()
-                                            ()))
-                                         ((defun handle-king ()
-                                            (comment Easiest piece.)
-                                            ())))
-                                 current-type)))
-
-  (comment The purpose of this seemingly useless function is to provide runtime arity checking.
-           This can (and probably should) be done in the engine instead.)
-  (return-move-status))
+(defgfun quit ()
+         true)
