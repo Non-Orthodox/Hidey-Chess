@@ -112,7 +112,9 @@ int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<D
 		execSetting(line);
 		break;
 	case EntryType::duckLisp:
-		e = eval(duckVM, duckLisp, "(() " + line + ")");
+		duckVM_object_t returnValue;
+		e = eval(duckVM, duckLisp, returnValue, "(() " + line + ")");
+		// TODO: Implement object serialization in duckVM.
 		break;
 	default:
 		break;

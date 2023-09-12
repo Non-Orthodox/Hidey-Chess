@@ -33,4 +33,7 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
                      const std::string name,
                      const std::string typeString,
                      dl_error_t (*callback)(duckVM_t *));
-int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string);
+int eval(std::shared_ptr<DuckVM> duckVM,
+         std::shared_ptr<DuckLisp> duckLisp,
+         duckVM_object_t &returnValue,
+         const std::string source);

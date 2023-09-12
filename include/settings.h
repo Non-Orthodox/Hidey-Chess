@@ -19,6 +19,7 @@ enum settingsType_t {
 
 class Setting {
 private:
+public:
 	union {
 		bool valueBool = false;
 		int valueInt;
@@ -30,7 +31,6 @@ private:
 		this->locked = false;
 		this->save = true;
 	}
-public:
 	bool save;
 	std::string name;
 	settingsType_t type = settingsType_boolean;
@@ -363,14 +363,18 @@ extern SettingsList *g_settings;
 	ENTRY(disable_sdl, false, lock, save) \
 	ENTRY(log_level, 5, unlock, save) \
 	ENTRY(log_file, "", unlock, save) \
-	ENTRY(game_compiler_heap_size, 1000000, unlock, save) \
 	ENTRY(config_compiler_heap_size, 1000000, lock, dont_save) \
 	ENTRY(config_vm_heap_size, 1000000, lock, dont_save) \
 	ENTRY(config_vm_max_objects, 1000, lock, dont_save) \
+	ENTRY(game_compiler_heap_size, 1000000, unlock, save) \
+	ENTRY(game_vm_heap_size, 1000000, lock, dont_save) \
+	ENTRY(game_vm_max_objects, 1000, lock, dont_save) \
 	ENTRY(autoexec_file, "../autoexec.dl", lock, save) \
 	ENTRY(config_file, "../config.dl", lock, save) \
 	ENTRY(disassemble, false, unlock, save) \
 	ENTRY(repl, false, unlock, save) \
+	ENTRY(repl_environment, "config", unlock, save) \
+	ENTRY(switch_repl_environment, "", unlock, dont_save) \
 	ENTRY(window_width, 640, unlock, save) \
 	ENTRY(window_height, 480, unlock, save) \
 

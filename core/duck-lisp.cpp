@@ -110,11 +110,15 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
 	return error;
 }
 
-int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string source) {
+int eval(std::shared_ptr<DuckVM> duckVM,
+         std::shared_ptr<DuckLisp> duckLisp,
+         duckVM_object_t &returnValue,
+         const std::string source) {
 	dl_error_t loadError;
 	dl_error_t runtimeError;
 	unsigned char *bytecode = nullptr;
 	dl_size_t bytecode_length = 0;
+	returnValue = duckVM_object_makeList(nullptr);
 	loadError = duckLisp_loadString(&duckLisp->duckLisp,
 	                                true,
 	                                &bytecode,
@@ -139,12 +143,13 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 		defer(DL_FREE(duckLisp->duckLisp.memoryAllocation, &string));
 		std::cout << std::string((char *) string, length) << std::endl;
 	}
-	duckVM_object_t *return_value = nullptr;
-	runtimeError = duckVM_execute(&duckVM->duckVM, return_value, bytecode, bytecode_length);
+	duckVM_object_t returnValueTemp;
+	runtimeError = duckVM_execute(&duckVM->duckVM, &returnValueTemp, bytecode, bytecode_length);
 	if (runtimeError) {
 		error("VM encountered a runtime error. (" + std::string((char *) dl_errorString[runtimeError]) + ")");
 		return print_errors(&duckVM->memoryAllocation, &duckVM->duckVM.errors);
 	}
+	returnValue = returnValueTemp;
 	return 0;
 }
 

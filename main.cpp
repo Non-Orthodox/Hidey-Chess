@@ -56,6 +56,30 @@ int main_saveSettings(Setting *setting) {
 	return 0;
 }
 
+int main_replEnvironment(Setting *setting) {
+	std::string &value = *setting->valueString;
+	if ((value != "config") && (value != "game")) {
+		value = "config";
+	}
+	return 0;
+}
+
+int main_switchReplEnvironment(Setting *setting) {
+	*setting->valueString = "";
+	{
+		Setting &setting = *(*g_settings)[settingEnum_repl_environment];
+		std::string &value = *setting.valueString;
+		if (value == "config") {
+			value = "game";
+		}
+		else {
+			value = "config";
+		}
+		std::cout << value << std::endl;
+	}
+	return 0;
+}
+
 int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
 	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
 	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
@@ -64,7 +88,8 @@ int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
 	std::string configString = "(()\n" + configSs.str() + ")";
-	return eval(duckVM, duckLisp, configString);
+	duckVM_object_t returnValue;
+	return eval(duckVM, duckLisp, returnValue, configString);
 }
 
 void main_initializeSettings() {
@@ -88,6 +113,8 @@ void main_initializeSettings() {
 
 	// Bind callbacks
 	(*g_settings)[settingEnum_help]->callback = main_printHelp;
+	(*g_settings)[settingEnum_switch_repl_environment]->callback = main_switchReplEnvironment;
+	(*g_settings)[settingEnum_repl_environment]->callback = main_replEnvironment;
 }
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
@@ -185,7 +212,8 @@ int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
 	std::string configString = "(()\n" + configSs.str() + ")";
-	return eval(duckVM, duckLisp, configString);
+	duckVM_object_t returnValue;
+	return eval(duckVM, duckLisp, returnValue, configString);
 }
 
 int main (int argc, char *argv[]) {
@@ -219,6 +247,10 @@ int main (int argc, char *argv[]) {
 	// This compiler will be used once and then destroyed.
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 	                                                     * sizeof(dl_uint8_t)));
+	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
+	                                           * sizeof(dl_uint8_t)),
+	                                          ((*g_settings)[settingEnum_game_vm_max_objects]->getInt()
+	                                           * sizeof(dl_uint8_t))));
 
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -291,7 +323,12 @@ int main (int argc, char *argv[]) {
         window.render(testTexture, dstrect);
         window.display();
 
-		repl.repl_nonblocking(configCompiler, configVm);
+        if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
+	        repl.repl_nonblocking(configCompiler, configVm);
+        }
+        else if ((*g_settings)[settingEnum_repl_environment]->getString() == "game") {
+	        repl.repl_nonblocking(gameCompiler, gameVm);
+        }
 	}
 
 	//Destroying and Quitting

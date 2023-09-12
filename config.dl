@@ -9,5 +9,6 @@ setting-set __quote #autoexec_file "../autoexec.dl"
 setting-set __quote #config_file "../config.dl"
 setting-set __quote #disassemble false
 setting-set __quote #repl true
+setting-set __quote #repl_environment "config"
 setting-set __quote #window_width 1280
 setting-set __quote #window_height 720
