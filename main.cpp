@@ -140,9 +140,6 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 	std::string var;
 	std::string value;
 	ptrdiff_t equalsIndex = 0;
-	// bool tempBool = false;
-	// int tempInt = 0;
-	// float tempFloat = 0.0;
 	Setting *setting;
 	for (int i = 0; i < argc; i++) {
 		arg = argv[i];
@@ -211,6 +208,7 @@ int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::ifstream configFileStream(configFileName);
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
+	// '\n' for readability when printing.
 	std::string configString = "(()\n" + configSs.str() + ")";
 	duckVM_object_t returnValue;
 	return eval(duckVM, duckLisp, returnValue, configString);
@@ -244,7 +242,6 @@ int main (int argc, char *argv[]) {
 
 	Repl repl{};
 
-	// This compiler will be used once and then destroyed.
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 	                                                     * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
@@ -253,11 +250,17 @@ int main (int argc, char *argv[]) {
 	                                           * sizeof(dl_uint8_t))));
 
 
-	if (SDL_Init(SDL_INIT_VIDEO) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
+        return 1;
+	}
+	defer(SDL_Quit());
     
-    if (!(IMG_Init(IMG_INIT_PNG)))
-        std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
+	if (!(IMG_Init(IMG_INIT_PNG))) {
+		std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
+		return 1;
+	}
+	defer(IMG_Quit());
 
     RenderWindow window("GAME v0.01",
                         (*g_settings)[settingEnum_window_width]->getInt(),
@@ -331,10 +334,7 @@ int main (int argc, char *argv[]) {
         }
 	}
 
-	//Destroying and Quitting
 	window.CleanUp();
-	IMG_Quit();
-    SDL_Quit();
 
 	return 0;
 }
