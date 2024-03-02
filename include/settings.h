@@ -293,7 +293,7 @@ public:
 		return string;
 	}
 	std::string serialize() {
-		std::string string = "setting-set __quote #" + this->name + " ";
+		std::string string = "setting-set quote #" + this->name + " ";
 		switch (this->type) {
 		case settingsType_boolean:
 			string += std::string(this->getBool() ? "true" : "false");

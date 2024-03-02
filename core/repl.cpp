@@ -19,6 +19,7 @@ Repl::~Repl() {
 
 }
 
+// Not thread safe.
 std::string getline_nonblocking() {
 	static std::string line = "";
 	auto enterPressed = [](std::string line) -> bool {
@@ -76,6 +77,7 @@ void execSetting(const std::string line) {
 	catch (const std::out_of_range &e) {}
 }
 
+// Not thread safe.
 int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
 	int e = 0;
 	if (!(*g_settings)[settingEnum_repl]->getBool()) return e;
@@ -112,8 +114,7 @@ int Repl::repl_nonblocking(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<D
 		execSetting(line);
 		break;
 	case EntryType::duckLisp:
-		duckVM_object_t returnValue;
-		e = eval(duckVM, duckLisp, returnValue, "(() " + line + ")");
+		e = eval(duckVM, duckLisp, "(() " + line + ")");
 		// TODO: Implement object serialization in duckVM.
 		break;
 	default:

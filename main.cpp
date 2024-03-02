@@ -88,12 +88,12 @@ int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
 	std::string configString = "(()\n" + configSs.str() + ")";
-	duckVM_object_t returnValue;
-	return eval(duckVM, duckLisp, returnValue, configString);
+	return eval(duckVM, duckLisp, configString);
 }
 
 void main_initializeSettings() {
 	// Initialize settings array.
+	// 2024: Why is this dynamic?
 	g_settings = new SettingsList();
 
 	// Register settings.
@@ -210,8 +210,7 @@ int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM
 	configSs << configFileStream.rdbuf();
 	// '\n' for readability when printing.
 	std::string configString = "(()\n" + configSs.str() + ")";
-	duckVM_object_t returnValue;
-	return eval(duckVM, duckLisp, returnValue, configString);
+	return eval(duckVM, duckLisp, configString);
 }
 
 int main (int argc, char *argv[]) {
@@ -248,6 +247,8 @@ int main (int argc, char *argv[]) {
 	                                           * sizeof(dl_uint8_t)),
 	                                          ((*g_settings)[settingEnum_game_vm_max_objects]->getInt()
 	                                           * sizeof(dl_uint8_t))));
+	registerCallback(gameVm, gameCompiler, "print", "(I)", script_callback_print);
+	registerCallback(gameVm, gameCompiler, "setting-get", "(I)", script_callback_get);
 
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -331,6 +332,10 @@ int main (int argc, char *argv[]) {
         }
         else if ((*g_settings)[settingEnum_repl_environment]->getString() == "game") {
 	        repl.repl_nonblocking(gameCompiler, gameVm);
+        }
+        else {
+	        // Don't freeze the REPL when the REPL setting is wrong.
+	        repl.repl_nonblocking(configCompiler, configVm);
         }
 	}
 

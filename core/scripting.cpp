@@ -7,84 +7,120 @@
 dl_error_t script_callback_print(duckVM_t *duckVM);
 
 
-dl_error_t script_callback_printCons(duckVM_t *duckVM, duckVM_object_t *consObject) {
+dl_error_t script_callback_printCons(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
-	if (consObject == nullptr) {
+	/* stack: cons */
+	dl_bool_t nil;
+	duckVM_object_type_t type;
+
+	e = duckVM_isNil(duckVM, &nil);
+	if (e) goto cleanup;
+	if (nil) {
+		/* stack: () */
 		printf("nil");
 	}
 	else {
-		duckVM_cons_t cons = duckVM_object_getCons(*consObject);
-		duckVM_object_t *carObject = cons.car;
-		duckVM_object_t *cdrObject = cons.cdr;
-		if (carObject == nullptr) {
+		/* stack: (car . cdr) */
+		e = duckVM_pushFirst(duckVM);
+		if (e) goto cleanup;
+		/* stack: (car . cdr) car */
+		e = duckVM_isNil(duckVM, &nil);
+		if (e) goto cleanup;
+		e = duckVM_typeOf(duckVM, &type);
+		if (e) goto cleanup;
+		if (nil) {
+			/* stack: (() . cdr) () */
 			printf("nil");
 		}
-		else if (duckVM_typeOf(*carObject) == duckVM_object_type_cons) {
+		else if (type == duckVM_object_type_cons) {
+			/* stack: ((caar . cdar) . cdr) (caar . cdar) */
 			printf("(");
-			e = script_callback_printCons(duckVM, carObject);
+			e = script_callback_printCons(duckVM);
 			if (e) goto cleanup;
+			/* stack: ((caar . cdar) . cdr) (caar . cdar) */
 			printf(")");
 		}
 		else {
-			e = duckVM_push(duckVM, carObject);
-			if (e) goto cleanup;
+			/* stack: (car . cdr) car */
 			e = script_callback_print(duckVM);
 			if (e) goto cleanup;
-			e = duckVM_pop(duckVM, nullptr);
-			if (e) goto cleanup;
+			/* stack: (car . cdr) car */
 		}
+		/* stack: (car . cdr) car */
+		e = duckVM_pop(duckVM);
+		if (e) goto cleanup;
+		/* stack: (car . cdr) */
 
 
-		if ((cdrObject == nullptr) || (duckVM_typeOf(*cdrObject) == duckVM_object_type_cons)) {
-			if (cdrObject != nullptr) {
+		/* stack: (car . cdr) */
+		e = duckVM_pushRest(duckVM);
+		if (e) goto cleanup;
+		/* stack: (car . cdr) cdr */
+		e = duckVM_isNil(duckVM, &nil);
+		if (e) goto cleanup;
+		e = duckVM_typeOf(duckVM, &type);
+		if (e) goto cleanup;
+		if (nil || (type == duckVM_object_type_list)) {
+			/* stack: (car . cdr) cdr */
+			if (!nil) {
+				/* stack: (car . (cadr . cddr)) (cadr . cddr) */
 				printf(" ");
-				e = script_callback_printCons(duckVM, cdrObject);
+				e = script_callback_printCons(duckVM);
 				if (e) goto cleanup;
+				/* stack: (car . (cadr . cddr)) (cadr . cddr) */
 			}
+			/* stack: (car . cdr) cdr */
 		}
 		else {
+			/* stack: (car . cdr) cdr */
 			printf(" . ");
-			e = duckVM_push(duckVM, cdrObject);
-			if (e) goto cleanup;
 			e = script_callback_print(duckVM);
 			if (e) goto cleanup;
-			e = duckVM_pop(duckVM, nullptr);
-			if (e) goto cleanup;
+			/* stack: (car . cdr) cdr */
 		}
+		/* stack: (car . cdr) cdr */
+		e = duckVM_pop(duckVM);
+		if (e) goto cleanup;
+		/* stack: (car . cdr) */
 	}
+	/* stack: cons */
 
- cleanup:
-
-	return e;
+ cleanup: return e;
 }
 
 dl_error_t script_callback_print(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
-	duckVM_object_t object;
+	/* stack: object */
+	duckVM_object_type_t type;
 
-	// e = duckVM_getArg(duckVM, &string, 0);
-	e = duckVM_pop(duckVM, &object);
+	e = duckVM_typeOf(duckVM, &type);
 	if (e) goto cleanup;
 
-	switch (duckVM_typeOf(object)) {
+	switch (type) {
 	case duckVM_object_type_symbol: {
+		/* stack: symbol */
 		dl_size_t id = 0;
 		dl_uint8_t *string = nullptr;
 		dl_size_t length = 0;
-		e = duckVM_object_getSymbol(duckVM->memoryAllocation, &id, &string, &length, object);
+		e = duckVM_copySymbolName(duckVM, &string, &length);
+		if (e) break;
+		e = duckVM_copySymbolId(duckVM, &id);
 		if (e) break;
 		for (dl_size_t i = 0; i < length; i++) {
 			putchar(string[i]);
 		}
+		e = DL_FREE(duckVM->memoryAllocation, &string);
+		if (e) break;
 		printf("→%lu", id);
 	}
 		break;
 	case duckVM_object_type_string: {
+		/* stack: string */
 		dl_uint8_t *string = nullptr;
 		dl_size_t length = 0;
-		e = duckVM_object_getString(duckVM->memoryAllocation, &string, &length, object);
+		e = duckVM_copyString(duckVM, &string, &length);
 		if (e) goto stringCleanup;
 		for (dl_size_t i = 0; i < length; i++) {
 			putchar(string[i]);
@@ -94,275 +130,328 @@ dl_error_t script_callback_print(duckVM_t *duckVM) {
 		if (e) break;
 	}
 		break;
-	case duckVM_object_type_integer:
-		printf("%li", duckVM_object_getInteger(object));
+	case duckVM_object_type_integer: {
+		/* stack: integer */
+		dl_ptrdiff_t integer;
+		e = duckVM_copySignedInteger(duckVM, &integer);
+		if (e) break;
+		printf("%li", integer);
 		break;
-	case duckVM_object_type_float:
-		printf("%f", duckVM_object_getFloat(object));
+	}
+	case duckVM_object_type_float: {
+		/* stack: float */
+		double floatingPoint;
+		e = duckVM_copyFloat(duckVM, &floatingPoint);
+		if (e) break;
+		printf("%f", floatingPoint);
 		break;
-	case duckVM_object_type_bool:
-		printf("%s", duckVM_object_getBoolean(object) ? "true" : "false");
+	}
+	case duckVM_object_type_bool: {
+		/* stack: boolean */
+		dl_bool_t boolean;
+		e = duckVM_copyBoolean(duckVM, &boolean);
+		if (e) break;
+		printf("%s", boolean ? "true" : "false");
 		break;
+	}
 	case duckVM_object_type_list: {
-		duckVM_list_t list = duckVM_object_getList(object);
-		if (list == nullptr) {
+		/* stack: list */
+		dl_bool_t nil;
+		e = duckVM_isNil(duckVM, &nil);
+		if (e) break;
+		if (nil) {
+			/* stack: () */
 			printf("nil");
 		}
 		else {
-			duckVM_cons_t cons;
-			e = duckVM_list_getCons(list, &cons);
-			if (e) break;
-			duckVM_object_t *carObject = cons.car;
-			duckVM_object_t *cdrObject = cons.cdr;
+			/* stack: (car cdr) */
+			duckVM_object_type_t type;
+
 			printf("(");
 
-			if (carObject == nullptr) {
+			e = duckVM_pushCar(duckVM);
+			if (e) goto cleanup;
+			/* stack: (car cdr) car */
+			e = duckVM_isNil(duckVM, &nil);
+			if (e) goto cleanup;
+			e = duckVM_typeOf(duckVM, &type);
+			if (e) goto cleanup;
+			if (nil) {
+				/* stack: (() cdr) () */
 				printf("(nil)");
 			}
-			else if (duckVM_typeOf(*carObject) == duckVM_object_type_cons) {
+			else if (type == duckVM_object_type_cons) {
+				/* stack: ((caar cdar) cdr) (caar cdar) */
 				printf("(");
-				e = script_callback_printCons(duckVM, carObject);
+				e = script_callback_printCons(duckVM);
 				if (e) goto cleanup;
+				/* stack: ((caar cdar) cdr) (caar cdar) */
 				printf(")");
 			}
 			else {
-				e = duckVM_push(duckVM, carObject);
-				if (e) goto cleanup;
+				/* stack: (car cdr) car */
 				e = script_callback_print(duckVM);
 				if (e) goto cleanup;
-				e = duckVM_pop(duckVM, nullptr);
-				if (e) goto cleanup;
+				/* stack: (car cdr) car */
 			}
+			/* stack: (car cdr) car */
+			e = duckVM_pop(duckVM);
+			if (e) goto cleanup;
+			/* stack: (car cdr) */
 
-			if (cdrObject == nullptr) {
+			e = duckVM_pushCdr(duckVM);
+			if (e) goto cleanup;
+			/* stack: (car cdr) cdr */
+			e = duckVM_isNil(duckVM, &nil);
+			if (e) goto cleanup;
+			e = duckVM_typeOf(duckVM, &type);
+			if (e) goto cleanup;
+			if (nil) {
+				/* stack: (car ()) () */
 			}
-			else if (duckVM_typeOf(*cdrObject) == duckVM_object_type_cons) {
-				if (cdrObject != nullptr) {
+			else if (type == duckVM_object_type_list) {
+				/* stack: (car cdr) cdr */
+				if (!nil) {
+					/* stack: (car (cadr cddr)) (cadr cddr) */
 					printf(" ");
-					e = script_callback_printCons(duckVM, cdrObject);
+					e = script_callback_printCons(duckVM);
 					if (e) goto cleanup;
+					/* stack: (car (cadr cddr)) (cadr cddr) */
 				}
+				/* stack: (car cdr) cdr */
 			}
 			else {
+				/* stack: (car cdr) cdr */
 				printf(" . ");
-				e = duckVM_push(duckVM, cdrObject);
-				if (e) goto cleanup;
 				e = script_callback_print(duckVM);
 				if (e) goto cleanup;
-				e = duckVM_pop(duckVM, nullptr);
-				if (e) goto cleanup;
+				/* stack: (car cdr) cdr */
 			}
+			/* stack: (car cdr) cdr */
+			e = duckVM_pop(duckVM);
+			if (e) goto cleanup;
+			/* stack: (car cdr) */
 
 			printf(")");
 		}
+		/* stack: list */
 	}
 		break;
 	case duckVM_object_type_closure: {
-		duckVM_closure_t closure = duckVM_object_getClosure(object);
-		duckVM_upvalueArray_t upvalueArray;
-		e = duckVM_closure_getUpvalueArray(closure, &upvalueArray);
+		/* stack: closure */
+		dl_ptrdiff_t name;
+		dl_uint8_t arity;
+		dl_bool_t variadic;
+		dl_size_t length;
+		e = duckVM_copyClosureName(duckVM, &name);
 		if (e) break;
-		printf("(closure $%li #%u%s", closure.name, closure.arity, closure.variadic ? "?" : "");
-		DL_DOTIMES(k, upvalueArray.length) {
-			duckVM_object_t *upvalueObject = upvalueArray.upvalues[k];
+		e = duckVM_copyClosureArity(duckVM, &arity);
+		if (e) break;
+		e = duckVM_copyClosureIsVariadic(duckVM, &variadic);
+		if (e) break;
+		e = duckVM_length(duckVM, &length);
+		if (e) break;
+		printf("(closure $%li #%u%s", name, arity, variadic ? "?" : "");
+		if (e) break;
+		DL_DOTIMES(k, length) {
+			/* stack: closure */
+			duckVM_object_type_t type;
+			e = duckVM_typeOf(duckVM, &type);
+			if (e) break;
 			putchar(' ');
-			if (upvalueObject == nullptr) {
-				putchar('$');
-				continue;
-			}
-			duckVM_upvalue_t upvalue = duckVM_object_getUpvalue(*upvalueObject);
-			duckVM_upvalue_type_t upvalueType = upvalue.type;
-			if (upvalueType == duckVM_upvalue_type_stack_index) {
-				duckVM_object_t object = DL_ARRAY_GETADDRESS(duckVM->stack,
-				                                             duckVM_object_t,
-				                                             upvalue.value.stack_index);
-				e = duckVM_push(duckVM, &object);
-				if (e) goto cleanup;
-				e = script_callback_print(duckVM);
-				if (e) goto cleanup;
-				e = duckVM_pop(duckVM, nullptr);
-				if (e) goto cleanup;
-			}
-			else if (upvalueType == duckVM_upvalue_type_heap_object) {
-				e = duckVM_push(duckVM, upvalue.value.heap_object);
-				if (e) goto cleanup;
-				e = script_callback_print(duckVM);
-				if (e) goto cleanup;
-				e = duckVM_pop(duckVM, nullptr);
-				if (e) goto cleanup;
+			if (type == duckVM_object_type_closure) {
+				printf("#C");
 			}
 			else {
-				while (upvalue.type == duckVM_upvalue_type_heap_upvalue) {
-					upvalue = duckVM_object_getUpvalue(*upvalue.value.heap_upvalue);
-				}
-				if (upvalue.type == duckVM_upvalue_type_stack_index) {
-					e = duckVM_push(duckVM,
-					                &DL_ARRAY_GETADDRESS(duckVM->stack,
-					                                     duckVM_object_t,
-					                                     upvalue.value.stack_index));
-					if (e) goto cleanup;
-					e = script_callback_print(duckVM);
-					if (e) goto cleanup;
-					e = duckVM_pop(duckVM, nullptr);
-					if (e) goto cleanup;
-				}
-				else if (upvalue.type == duckVM_upvalue_type_heap_object) {
-					e = duckVM_push(duckVM, upvalue.value.heap_object);
-					if (e) goto cleanup;
-					e = script_callback_print(duckVM);
-					if (e) goto cleanup;
-					e = duckVM_pop(duckVM, nullptr);
-					if (e) goto cleanup;
-				}
-				else {
-					printf("Invalid upvalue type: %i", upvalue.type);
-					e = dl_error_invalidValue;
-					goto cleanup;
-				}
+				e = duckVM_pushElement(duckVM, k);
+				if (e) break;
+				/* stack: closure closure[k] */
+				e = script_callback_print(duckVM);
+				if (e) break;
+				/* stack: closure closure[k] */
+				e = duckVM_pop(duckVM);
+				if (e) break;
 			}
+			/* stack: closure */
 		}
 		printf(")");
 	}
 		break;
 	case duckVM_object_type_vector: {
-		duckVM_vector_t vector = duckVM_object_getVector(object);
-		duckVM_internalVector_t internalVector;
-		e = duckVM_vector_getInternalVector(vector, &internalVector);
-		if (e) break;
+		/* stack: vector */
+		dl_size_t length;
+		dl_bool_t empty;
+		e = duckVM_length(duckVM, &length);
+		if (e) goto cleanup;
 		printf("[");
-		if (vector.internal_vector != nullptr) {
-			for (dl_ptrdiff_t k = vector.offset;
-			     (dl_size_t) k < internalVector.length;
-			     k++) {
-				duckVM_object_t *value = nullptr;
-				e = duckVM_internalVector_getElement(internalVector, &value, k);
-				if (e) break;
-				if (k != vector.offset) putchar(' ');
-				e = duckVM_push(duckVM, value);
+		e = duckVM_isEmpty(duckVM, &empty);
+		if (e) goto cleanup;
+		if (!empty) {
+			/* stack: vector */
+			DL_DOTIMES(k, length) {
+				/* stack: vector */
+				if (k != 0) putchar(' ');
+				e = duckVM_pushElement(duckVM, k);
 				if (e) goto cleanup;
+				/* stack: vector vector[k] */
 				e = script_callback_print(duckVM);
 				if (e) goto cleanup;
-				e = duckVM_pop(duckVM, nullptr);
+				/* stack: vector vector[k] */
+				e = duckVM_pop(duckVM);
 				if (e) goto cleanup;
+				/* stack: vector */
 			}
+			/* stack: vector */
 		}
+		/* stack: vector */
 		printf("]");
 	}
 		break;
-	case duckVM_object_type_type:
-		printf("::%lu", duckVM_object_getType(object));
+	case duckVM_object_type_type: {
+		/* stack: type */
+		dl_size_t type;
+		e = duckVM_copyType(duckVM, &type);
+		printf("::%lu", type);
 		break;
+	}
 	case duckVM_object_type_composite: {
-		duckVM_composite_t composite = duckVM_object_getComposite(object);
-		duckVM_internalComposite_t internalComposite;
-		e = duckVM_composite_getInternalComposite(composite, &internalComposite);
-		if (e) break;
-		printf("(make-instance ::%lu ", internalComposite.type);
-		e = duckVM_push(duckVM, internalComposite.value);
+		/* stack: composite */
+		dl_size_t type;
+		e = duckVM_copyCompositeType(duckVM, &type);
 		if (e) goto cleanup;
+		printf("(make-instance ::%lu ", type);
+		e = duckVM_pushCompositeValue(duckVM);
+		if (e) goto cleanup;
+		/* stack: composite value */
 		e = script_callback_print(duckVM);
 		if (e) goto cleanup;
-		e = duckVM_pop(duckVM, nullptr);
+		/* stack: composite value */
+		e = duckVM_pop(duckVM);
 		if (e) goto cleanup;
+		/* stack: composite */
 		printf(" ");
-		e = duckVM_push(duckVM, internalComposite.function);
+		e = duckVM_pushCompositeFunction(duckVM);
 		if (e) goto cleanup;
+		/* stack: composite function */
 		e = script_callback_print(duckVM);
 		if (e) goto cleanup;
-		e = duckVM_pop(duckVM, nullptr);
+		/* stack: composite function */
+		e = duckVM_pop(duckVM);
 		if (e) goto cleanup;
+		/* stack: composite */
 		printf(")");
 		break;
 	}
-	default:
-		printf("print: Unsupported type. [%u]\n", duckVM_typeOf(object));
+	default: {
+		/* stack: object */
+		duckVM_object_type_t type;
+		e = duckVM_typeOf(duckVM, &type);
+		if (e) break;
+		printf("print: Unsupported type. [%u]\n", type);
+	}
 	}
 	if (e) goto cleanup;
 
-	e = duckVM_push(duckVM, &object);
-	if (e) {
-		goto cleanup;
-	}
-
  cleanup:
-
 	fflush(stdout);
-
 	return e;
 }
 
+// (setting-get <name>)
 dl_error_t script_callback_get(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
-	duckVM_object_t object;
-
-	e = duckVM_pop(duckVM, &object);
+	// stack: object
+	dl_bool_t isSymbol;
+	e = duckVM_isSymbol(duckVM, &isSymbol);
 	if (e) return e;
-	if (object.type != duckVM_object_type_symbol) {
+	if (!isSymbol) {
 		e = dl_error_invalidValue;
 		return e;
 	}
-	dl_size_t symbolId = 0;
+	// stack: symbol
 	dl_uint8_t *symbolString = nullptr;
 	dl_size_t symbolString_length = 0;
-	e = duckVM_object_getSymbol(duckVM->memoryAllocation, &symbolId, &symbolString, &symbolString_length, object);
+	e = duckVM_copySymbolName(duckVM, &symbolString, &symbolString_length);
+	if (e) return e;
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: EMPTY
 	Setting* setting = g_settings->find(std::string((char *) symbolString, symbolString_length));
 	settingsType_t settingType = setting->type;
 	if (settingType == settingsType_boolean) {
-		object = duckVM_object_makeBoolean(setting->getBool());
+		e = duckVM_pushBoolean(duckVM);
+		if (e) return e;
+		// stack: false
+		e = duckVM_setBoolean(duckVM, setting->getBool());
+		if (e) return e;
+		// stack: setting->getBool()
 	}
 	else if (settingType == settingsType_integer) {
-		object = duckVM_object_makeInteger(setting->getInt());
+		e = duckVM_pushInteger(duckVM);
+		if (e) return e;
+		// stack: 0
+		e = duckVM_setInteger(duckVM, setting->getInt());
+		if (e) return e;
+		// stack: setting->getInt()
 	}
 	else if (settingType == settingsType_string) {
 		std::string string = setting->getString();
-		duckVM_object_t internalStringObject = duckVM_object_makeInternalString((dl_uint8_t *) string.c_str(),
-		                                                                        string.length());
-		duckVM_object_t *internalStringObjectPointer = nullptr;
-		e = duckVM_allocateHeapObject(duckVM, &internalStringObjectPointer, internalStringObject);
+		e = duckVM_pushString(duckVM, (dl_uint8_t *) string.c_str(), string.length());
 		if (e) return e;
-		object = duckVM_object_makeString(internalStringObjectPointer, 0, string.length());
+		// stack: setting->getString()
 	}
 	else {
+		// stack: EMPTY
 		e = dl_error_invalidValue;
 		return e;
 	}
-	e = duckVM_push(duckVM, &object);
 	return e;
 }
 
+// (setting-set <name> <value>)
 dl_error_t script_callback_set(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
-	duckVM_object_t object1;
-	duckVM_object_t object2;
-
-	e = duckVM_pop(duckVM, &object2);
+	// stack: name value
+	e = duckVM_push(duckVM, -2);
 	if (e) return e;
-	e = duckVM_pop(duckVM, &object1);
+	// stack: name value name
+	dl_bool_t nameObjectIsSymbol;
+	e = duckVM_isSymbol(duckVM, &nameObjectIsSymbol);
 	if (e) return e;
-	if (object1.type != duckVM_object_type_symbol) {
+	if (!nameObjectIsSymbol) {
 		e = dl_error_invalidValue;
 		return e;
 	}
-	dl_size_t id = 0;
 	dl_uint8_t *string = nullptr;
 	dl_size_t length = 0;
-	e = duckVM_object_getSymbol(duckVM->memoryAllocation, &id, &string, &length, object1);
+	e = duckVM_copySymbolName(duckVM, &string, &length);
 	if (e) return e;
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: name value
 	Setting* setting = g_settings->find(std::string((char *) string, length));
 	settingsType_t settingType = setting->type;
-	duckVM_object_type_t objectType = object2.type;
-	if ((settingType == settingsType_boolean) && (objectType == duckVM_object_type_bool)) {
-		setting->set((bool) duckVM_object_getBoolean(object2));
+	duckVM_object_type_t valueObjectType;
+	e = duckVM_typeOf(duckVM, &valueObjectType);
+	if (e) return e;
+	if ((settingType == settingsType_boolean) && (valueObjectType == duckVM_object_type_bool)) {
+		dl_bool_t boolean;
+		e = duckVM_copyBoolean(duckVM, &boolean);
+		if (e) return e;
+		setting->set((bool) boolean);
 	}
-	else if ((settingType == settingsType_integer) && (objectType == duckVM_object_type_integer)) {
-		setting->set(static_cast<int>(duckVM_object_getInteger(object2)));
+	else if ((settingType == settingsType_integer) && (valueObjectType == duckVM_object_type_integer)) {
+		dl_ptrdiff_t integer;
+		e = duckVM_copySignedInteger(duckVM, &integer);
+		if (e) return e;
+		setting->set(static_cast<int>(integer));
 	}
-	else if ((settingType == settingsType_string) && (objectType == duckVM_object_type_string)) {
+	else if ((settingType == settingsType_string) && (valueObjectType == duckVM_object_type_string)) {
 		dl_uint8_t *string = nullptr;
 		dl_size_t length = 0;
-		e = duckVM_object_getString(duckVM->memoryAllocation, &string, &length, object2);
+		e = duckVM_copyString(duckVM, &string, &length);
 		if (e) return e;
 		setting->set(std::string((char *) string, length));
 	}
@@ -370,7 +459,12 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 		e = dl_error_invalidValue;
 		return e;
 	}
-	e = duckVM_push(duckVM, &object2);
+	e = duckVM_copyFromTop(duckVM, -2);
+	if (e) return e;
+	// stack: value value
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: value
 	return e;
 }
 
