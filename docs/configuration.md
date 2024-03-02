@@ -11,7 +11,7 @@ To start the REPL, run the game with the `-r` or `--repl` flag.
 Print a setting: `\name`  
 Set a setting: `\name value`  
 Run a command (a callback): `!name`  
-Evaluate a duck-lisp form: `(…)`  
+Everything else is a duck-lisp form.  
 
 Examples:
 
@@ -19,7 +19,7 @@ Examples:
 \log_level
 \log_level 4
 !help
-(print "Hello\n")
+print "Hello\n"
 ```
 
 ## autoexec.dl
