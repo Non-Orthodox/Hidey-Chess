@@ -327,6 +327,8 @@ int main (int argc, char *argv[]) {
         window.render(testTexture, dstrect);
         window.display();
 
+        // funcall(configVm, configCompiler, "sum", 3);
+
         if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
 	        repl.repl_nonblocking(configCompiler, configVm);
         }

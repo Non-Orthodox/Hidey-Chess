@@ -158,53 +158,46 @@ int eval(std::shared_ptr<DuckVM> duckVM,
 // int funcall(std::shared_ptr<DuckVM> duckVM,
 //             std::shared_ptr<DuckLisp> duckLisp,
 //             const std::string name,
-//             std::vector<duckVM_object_t> objects) {
+//             const std::size_t numberOfArgs) {
 // 	dl_error_t e = dl_error_ok;
-// 	dl_error_t loadError;
+// 	dl_error_t eError = dl_error_ok;
 // 	dl_error_t runtimeError;
-// 	dl_size_t bytecode_length = 0;
 
-// 	dl_uint8_t arity = objects.size();
+// 	// stack: EMPTY
 
-// 	if (arity > 255) {
-// 		error("Arguments vector must be less than 255 objects long.");
-// 	}
-
-// 	for (auto &object: objects) {
-// 		e = duckVM_push(&duckVM->duckVM, &object);
-// 		if (e) return e;
+// 	if (numberOfArgs >= 256) {
+// 		error("A max of 256 arguments is allowed.");
+// 		e = dl_error_invalidValue;
+// 		return e;
 // 	}
 
 // 	std::ptrdiff_t key = duckLisp_symbol_nameToValue(&duckLisp->duckLisp, (dl_uint8_t *) name.c_str(), name.size());
-// 	duckVM_object_t global;
-// 	e = duckVM_getGlobal(&duckVM->duckVM, &global, key);
+// 	e = duckVM_pushGlobal(&duckVM->duckVM, key);
 // 	if (e) {
-// 		error("Could not find global function \""
-// 		      + name
-// 		      + "\". ("
-// 		      + std::string((char *) dl_errorString[runtimeError])
-// 		      + ")");
-// 		return print_errors(duckVM->duckVM.memoryAllocation, &duckVM->duckVM.errors);
+// 		// error("Could not find global function \""
+// 		//       + name
+// 		//       + "\". ("
+// 		//       + std::string((char *) dl_errorString[runtimeError])
+// 		//       + ")");
+// 		// eError = duckVM->print_errors();
+// 		if (eError) e = eError;
+// 		return e;
 // 	}
+// 	// stack: global-function
 
-// 	// Push the value of the global on the stack.
-// 	e = duckVM_push(&duckVM->duckVM, &global);
-// 	if (e) return e;
-
-// 	dl_uint8_t callerBytecode[] = {
-// 		duckLisp_instruction_funcall8,
-// 		1,
-// 		arity
-// 	};
-
-// 	duckVM_object_t *return_value = nullptr;
-// 	runtimeError = duckVM_execute(&duckVM->duckVM,
-// 	                              return_value,
-// 	                              callerBytecode,
-// 	                              sizeof(callerBytecode)/sizeof(*callerBytecode));
+// 	// global sum lambda (a b c) print + a + b c
+// 	duckVM_pushInteger(&duckVM->duckVM);
+// 	duckVM_setInteger(&duckVM->duckVM, 5);
+// 	duckVM_pushInteger(&duckVM->duckVM);
+// 	duckVM_setInteger(&duckVM->duckVM, 7);
+// 	duckVM_pushInteger(&duckVM->duckVM);
+// 	duckVM_setInteger(&duckVM->duckVM, 2);
+// 	runtimeError = duckVM_call(&duckVM->duckVM, -numberOfArgs-1, numberOfArgs);
 // 	if (runtimeError) {
 // 		error("VM encountered a runtime error. (" + std::string((char *) dl_errorString[runtimeError]) + ")");
-// 		return print_errors(duckVM->duckVM.memoryAllocation, &duckVM->duckVM.errors);
+// 		return duckVM->print_errors();
 // 	}
-// 	return 0;
+// 	// stack: return-value
+
+// 	return dl_error_ok;
 // }

@@ -27,7 +27,6 @@ public:
 	~DuckVM();
 	dl_error_t print_errors();
 	int registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));
-	int funcall(unsigned char *bytecode, duckVM_object_t *closure, std::vector<duckVM_object_t> objects);
 };
 
 int registerCallback(std::shared_ptr<DuckVM> duckVM,
@@ -36,3 +35,7 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
                      const std::string typeString,
                      dl_error_t (*callback)(duckVM_t *));
 int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string source);
+// int funcall(std::shared_ptr<DuckVM> duckVM,
+//             std::shared_ptr<DuckLisp> duckLisp,
+//             const std::string name,
+//             const std::size_t numberOfArgs);
