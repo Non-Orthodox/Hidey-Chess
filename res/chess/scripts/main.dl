@@ -1,17 +1,17 @@
 (include "library.dl")
 
-;; These are examples. See "duck-lisp/language.md" and "duck-lisp/language-reference.md" for details. `defgfun' is
-;; defined by the library above. Be sure to look that over as well. There's little documentation in there, but many of
-;; those functions are defined in Common Lisp as well. If you're lucky, the Common Lisp HyperSpec might even have an
-;; intelligible entry on it.
+;; These are examples. See "duck-lisp/docs/language.md" and "duck-lisp/docs/language-reference.md" for
+;; details. `defgfun' is defined by the library above. Be sure to look that over as well. There's little documentation
+;; in there, but many of those functions are defined in Common Lisp as well. If you're lucky, the Common Lisp HyperSpec
+;; might even have an intelligible entry on it.
 
 (defgfun init ()
          true)
 
 (defgfun move (move-type player current-piece destination-piece)
-         (var return-status true)
-         (var win false)
-         (var valid true)
+         var return-status true
+         var win false
+         var valid true
 
          (vector return-status win valid))
 
