@@ -119,17 +119,17 @@ void main_initializeSettings() {
 
 void main_parseCommandLineArguments(int argc, char *argv[]) {
 	// Define option aliases.
-#   define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
+#	define ENTRY(ENTRY_letter, ENTRY_name) ENTRY_letter,
 	char letterOptions[] = {
 		SETTINGS_ALIAS_LIST
 	};
-#   undef ENTRY
+#	undef ENTRY
 
-#   define ENTRY(ENTRY_letter, ENTRY_name) #ENTRY_name,
+#	define ENTRY(ENTRY_letter, ENTRY_name) #ENTRY_name,
 	std::string optionsAliases[] = {
 		SETTINGS_ALIAS_LIST
 	};
-#   undef ENTRY
+#	undef ENTRY
 
 	/*
 	Starting at zero might be wrong, but the program name shouldn't be
@@ -225,11 +225,11 @@ int main (int argc, char *argv[]) {
 
 	// This compiler and VM will be used to read config files and run a jank REPL.
 	std::shared_ptr<DuckLisp> configCompiler(new DuckLisp((*g_settings)[settingEnum_config_compiler_heap_size]->getInt()
-	                                                      * sizeof(dl_uint8_t)));
+														  * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> configVm(new DuckVM(((*g_settings)[settingEnum_config_vm_heap_size]->getInt()
-	                                             * sizeof(dl_uint8_t)),
-	                                            ((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
-	                                             * sizeof(dl_uint8_t))));
+												 * sizeof(dl_uint8_t)),
+												((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
+												 * sizeof(dl_uint8_t))));
 	registerCallback(configVm, configCompiler, "print", "(I)", script_callback_print);
 	registerCallback(configVm, configCompiler, "setting-get", "(I)", script_callback_get);
 	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
@@ -242,36 +242,36 @@ int main (int argc, char *argv[]) {
 	Repl repl{};
 
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
-	                                                     * sizeof(dl_uint8_t)));
+														 * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
-	                                           * sizeof(dl_uint8_t)),
-	                                          ((*g_settings)[settingEnum_game_vm_max_objects]->getInt()
-	                                           * sizeof(dl_uint8_t))));
+											   * sizeof(dl_uint8_t)),
+											  ((*g_settings)[settingEnum_game_vm_max_objects]->getInt()
+											   * sizeof(dl_uint8_t))));
 	registerCallback(gameVm, gameCompiler, "print", "(I)", script_callback_print);
 	registerCallback(gameVm, gameCompiler, "setting-get", "(I)", script_callback_get);
 
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
-        return 1;
+		std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
+		return 1;
 	}
 	defer(SDL_Quit());
-    
+	
 	if (!(IMG_Init(IMG_INIT_PNG))) {
 		std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
 		return 1;
 	}
 	defer(IMG_Quit());
 
-    RenderWindow window("GAME v0.01",
-                        (*g_settings)[settingEnum_window_width]->getInt(),
-                        (*g_settings)[settingEnum_window_height]->getInt());
-    // std::cout << window.getRefreshRate() << "\n";
+	RenderWindow window("GAME v0.01",
+						(*g_settings)[settingEnum_window_width]->getInt(),
+						(*g_settings)[settingEnum_window_height]->getInt());
+	// std::cout << window.getRefreshRate() << "\n";
 
 	//Variables used for main while loop
-    // j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
+	// j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
 	bool gameRunning = true;
-    SDL_Event event;
+	SDL_Event event;
 	gameState GAME_STATE = SINGLEPLAYER;
 
 	SDL_Texture* testTexture = window.loadTexture("../res/chess/images/knight.png");
@@ -290,7 +290,7 @@ int main (int argc, char *argv[]) {
 				// GAME_STATE = SINGLEPLAYER;
 				if (GAME_STATE != MAIN_MENU) {
 					/* j: Compile "main.dl" for the selected game type.
-					      Execute the compiled bytecode a single time. */
+						  Execute the compiled bytecode a single time. */
 				}
 				if (GAME_STATE == SINGLEPLAYER) {
 					debug("Now in Singleplayer");
@@ -328,36 +328,36 @@ int main (int argc, char *argv[]) {
 
 		// Temporary event handler
 		while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT)
-                gameRunning = false;
-        }
+			if (event.type == SDL_QUIT)
+				gameRunning = false;
+		}
 
 		window.clear();
-        window.render(testTexture, dstrect);
-        window.display();
+		window.render(testTexture, dstrect);
+		window.display();
 
-        // funcall(configVm, configCompiler, "sum", 3);
+		// funcall(configVm, configCompiler, "sum", 3);
 
-        if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
-	        repl.repl_nonblocking(configCompiler, configVm);
-        }
-        else if ((*g_settings)[settingEnum_repl_environment]->getString() == "game") {
-	        repl.repl_nonblocking(gameCompiler, gameVm);
-        }
-        else {
-	        // Don't freeze the REPL when the REPL setting is wrong.
-	        repl.repl_nonblocking(configCompiler, configVm);
-        }
+		if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
+			repl.repl_nonblocking(configCompiler, configVm);
+		}
+		else if ((*g_settings)[settingEnum_repl_environment]->getString() == "game") {
+			repl.repl_nonblocking(gameCompiler, gameVm);
+		}
+		else {
+			// Don't freeze the REPL when the REPL setting is wrong.
+			repl.repl_nonblocking(configCompiler, configVm);
+		}
 
-        // Garbage collect every frame to prevent unexpected pauses? (pause *every* time, not randomly)
-        if (configVm->garbageCollect()) {
-	        error("Config VM garbage collection failed");
-	        return 1;
-        }
-        if (gameVm->garbageCollect()) {
-	        error("Game VM garbage collection failed");
-	        return 1;
-        }
+		// Garbage collect every frame to prevent unexpected pauses? (pause *every* time, not randomly)
+		if (configVm->garbageCollect()) {
+			error("Config VM garbage collection failed");
+			return 1;
+		}
+		if (gameVm->garbageCollect()) {
+			error("Game VM garbage collection failed");
+			return 1;
+		}
 	}
 
 	window.CleanUp();
