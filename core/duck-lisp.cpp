@@ -91,6 +91,10 @@ int DuckVM::registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM
 	return duckVM_linkCFunction(&duckVM, index, callback);
 }
 
+dl_error_t DuckVM::garbageCollect() {
+	return duckVM_garbageCollect(&duckVM);
+}
+
 
 
 int registerCallback(std::shared_ptr<DuckVM> duckVM,

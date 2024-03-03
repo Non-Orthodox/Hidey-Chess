@@ -27,6 +27,7 @@ public:
 	~DuckVM();
 	dl_error_t print_errors();
 	int registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));
+	dl_error_t garbageCollect();
 };
 
 int registerCallback(std::shared_ptr<DuckVM> duckVM,

@@ -269,6 +269,7 @@ int main (int argc, char *argv[]) {
     // std::cout << window.getRefreshRate() << "\n";
 
 	//Variables used for main while loop
+    // j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
 	bool gameRunning = true;
     SDL_Event event;
 	gameState GAME_STATE = SINGLEPLAYER;
@@ -287,21 +288,29 @@ int main (int argc, char *argv[]) {
 			case MAIN_MENU:
 				// gameRunning = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
+				if (GAME_STATE != MAIN_MENU) {
+					/* j: Compile "main.dl" for the selected game type.
+					      Execute the compiled bytecode a single time. */
+				}
 				if (GAME_STATE == SINGLEPLAYER) {
 					debug("Now in Singleplayer");
 					//! INIT GAME
+					// j: Call the "init" global function if it exists.
 				}
 				else if (GAME_STATE == MULTIPLAYER) {
 					debug("Now in Multiplayer");
 					//! INIT GAME
+					// j: Call the "init" global function if it exists.
 				}
 				break;
 
 			case MULTIPLAYER:
+				// j: Every iteration a series of DL functions will be called. You will decide what those functions are.
 				// gameRunning = !MP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
 			case SINGLEPLAYER:
+				// j: Every iteration a series of DL functions will be called. You will decide what those functions are.
 				// gameRunning = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
@@ -338,6 +347,16 @@ int main (int argc, char *argv[]) {
         else {
 	        // Don't freeze the REPL when the REPL setting is wrong.
 	        repl.repl_nonblocking(configCompiler, configVm);
+        }
+
+        // Garbage collect every frame to prevent unexpected pauses? (pause *every* time, not randomly)
+        if (configVm->garbageCollect()) {
+	        error("Config VM garbage collection failed");
+	        return 1;
+        }
+        if (gameVm->garbageCollect()) {
+	        error("Game VM garbage collection failed");
+	        return 1;
         }
 	}
 

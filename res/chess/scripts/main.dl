@@ -1,3 +1,4 @@
+;; This script will not yet execute without errors..
 (include "library.dl")
 
 ;; These are examples. See "duck-lisp/docs/language.md" and "duck-lisp/docs/language-reference.md" for
@@ -5,15 +6,31 @@
 ;; in there, but many of those functions are defined in Common Lisp as well. If you're lucky, the Common Lisp HyperSpec
 ;; might even have an intelligible entry on it.
 
+;; Globals vs local variables:
+;; Globals can be inspected, modified, and called from C++. Local variables cannot.
+;; Globals are always defined using the `global' keyword. Locals are always defined using the `var' keyword.
+
+;; All variables and functions in here are merely suggestions. You can change this script structure if you don't like
+;; it.
+
+;; Create top-level local variables and constants.
+;; `status-ok' and `status-error' are constants. Don't modify them.
+var status-ok true
+var status-error false
+
+;; If set, this variable will tell the engine to shutdown the game.
+;; We could turn this into a global variable. Then we wouldn't need the `quit?' function.
+var quit false
+
+;; Having an `init' function could be a good way to pass variables to this script.
 (defgfun init ()
-         true)
+  true)
 
 (defgfun move (move-type player current-piece destination-piece)
-         var return-status true
-         var win false
-         var valid true
+  var return-status status-ok
+  var win false
+  var valid true
 
-         (vector return-status win valid))
+  (vector return-status win valid))
 
-(defgfun quit ()
-         true)
+defgfun quit? () quit

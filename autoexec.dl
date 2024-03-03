@@ -20,6 +20,8 @@ global log-level-error 2
 global log-level-critical-error 1
 global log-level-disabled 0
 
+global println lambda (m) println m
+
 ;; (s log_level log-level-debug)
 ;; (s log_file "hidey-chess.log")
 ;; (c help)
