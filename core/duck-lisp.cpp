@@ -133,16 +133,14 @@ int eval(std::shared_ptr<DuckVM> duckVM,
 	}
 	if (bytecode == nullptr) return 0;
 	if ((*g_settings)[settingEnum_disassemble]->getBool()) {
-		dl_uint8_t *string = nullptr;
-		dl_size_t length = 0;
-		dl_error_t e = duckLisp_disassemble(&string,
-		                                    &length,
+		dl_array_t disassembly;
+		dl_error_t e = duckLisp_disassemble(&disassembly,
 		                                    duckLisp->duckLisp.memoryAllocation,
 		                                    bytecode,
 		                                    bytecode_length);
 		if (e) return e;
-		defer(DL_FREE(duckLisp->duckLisp.memoryAllocation, &string));
-		std::cout << std::string((char *) string, length) << std::endl;
+		defer(dl_array_quit(&disassembly));
+		std::cout << std::string((char *) disassembly.elements, disassembly.elements_length) << std::endl;
 	}
 	runtimeError = duckVM_execute(&duckVM->duckVM, bytecode, bytecode_length);
 	// stack: object?
