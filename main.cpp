@@ -244,15 +244,6 @@ int main (int argc, char *argv[]) {
 
 	Repl repl{};
 
-	std::shared_ptr<DuckLisp> guiCompiler(new DuckLisp((*g_settings)[settingEnum_gui_compiler_heap_size]->getInt()
-	                                                   * sizeof(dl_uint8_t)));
-	std::shared_ptr<DuckVM> guiVm(new DuckVM(((*g_settings)[settingEnum_gui_vm_heap_size]->getInt()
-	                                          * sizeof(dl_uint8_t)),
-	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
-	                                          * sizeof(dl_uint8_t))));
-	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
-	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
-
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 														 * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
@@ -262,6 +253,15 @@ int main (int argc, char *argv[]) {
 	registerCallback(gameVm, gameCompiler, "print", "(I)", script_callback_print);
 	registerCallback(gameVm, gameCompiler, "setting-get", "(I)", script_callback_get);
 
+	std::shared_ptr<DuckLisp> guiCompiler(new DuckLisp((*g_settings)[settingEnum_gui_compiler_heap_size]->getInt()
+	                                                   * sizeof(dl_uint8_t)));
+	std::shared_ptr<DuckVM> guiVm(new DuckVM(((*g_settings)[settingEnum_gui_vm_heap_size]->getInt()
+	                                          * sizeof(dl_uint8_t)),
+	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
+	                                          * sizeof(dl_uint8_t))));
+	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
+	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
+	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
@@ -280,6 +280,9 @@ int main (int argc, char *argv[]) {
 						(*g_settings)[settingEnum_window_height]->getInt());
 	// std::cout << window.getRefreshRate() << "\n";
 
+	// // Initialize GUI, register callbacks, and link global GUI context into VM.
+	// Gui gui(window, guiVm, guiCompiler);
+
 	//Variables used for main while loop
 	// j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
 	bool gameRunning = true;
@@ -293,6 +296,8 @@ int main (int argc, char *argv[]) {
 	dstrect.w = 512;
 	dstrect.h = 512;
 
+	// gui.present("main-menu")
+
 	while(gameRunning)
 	{
 		switch(game_state)
@@ -300,6 +305,7 @@ int main (int argc, char *argv[]) {
 			case MAIN_MENU:
 				// gameRunning = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
+				// game_state = gui.exec("game-state").integer;
 				if (game_state != MAIN_MENU) {
 					/* j: Compile "main.dl" for the selected game type.
 						  Execute the compiled bytecode a single time. */
@@ -308,11 +314,13 @@ int main (int argc, char *argv[]) {
 					debug("Now in Singleplayer");
 					//! INIT GAME
 					// j: Call the "init" global function if it exists.
+					// gui.exec("present singleplayer")
 				}
 				else if (game_state == MULTIPLAYER) {
 					debug("Now in Multiplayer");
 					//! INIT GAME
 					// j: Call the "init" global function if it exists.
+					// gui.exec("present multiplayer")
 				}
 				break;
 
@@ -345,6 +353,7 @@ int main (int argc, char *argv[]) {
 		}
 
 		window.clear();
+		// gui.render();
 		window.render(testTexture, dstrect);
 		window.display();
 
