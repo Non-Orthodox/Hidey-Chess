@@ -272,7 +272,7 @@ int main (int argc, char *argv[]) {
 	// j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
 	bool gameRunning = true;
 	SDL_Event event;
-	gameState GAME_STATE = SINGLEPLAYER;
+	gameState game_state = SINGLEPLAYER;
 
 	SDL_Texture* testTexture = window.loadTexture("../res/chess/images/knight.png");
 	SDL_Rect dstrect;
@@ -283,21 +283,21 @@ int main (int argc, char *argv[]) {
 
 	while(gameRunning)
 	{
-		switch(GAME_STATE)
+		switch(game_state)
 		{
 			case MAIN_MENU:
 				// gameRunning = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
 				// GAME_STATE = SINGLEPLAYER;
-				if (GAME_STATE != MAIN_MENU) {
+				if (game_state != MAIN_MENU) {
 					/* j: Compile "main.dl" for the selected game type.
 						  Execute the compiled bytecode a single time. */
 				}
-				if (GAME_STATE == SINGLEPLAYER) {
+				if (game_state == SINGLEPLAYER) {
 					debug("Now in Singleplayer");
 					//! INIT GAME
 					// j: Call the "init" global function if it exists.
 				}
-				else if (GAME_STATE == MULTIPLAYER) {
+				else if (game_state == MULTIPLAYER) {
 					debug("Now in Multiplayer");
 					//! INIT GAME
 					// j: Call the "init" global function if it exists.
