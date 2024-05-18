@@ -72,6 +72,9 @@ int main_switchReplEnvironment(Setting *setting) {
 		if (value == "config") {
 			value = "game";
 		}
+		else if (value == "game") {
+			value = "gui";
+		}
 		else {
 			value = "config";
 		}
@@ -241,6 +244,15 @@ int main (int argc, char *argv[]) {
 
 	Repl repl{};
 
+	std::shared_ptr<DuckLisp> guiCompiler(new DuckLisp((*g_settings)[settingEnum_gui_compiler_heap_size]->getInt()
+	                                                   * sizeof(dl_uint8_t)));
+	std::shared_ptr<DuckVM> guiVm(new DuckVM(((*g_settings)[settingEnum_gui_vm_heap_size]->getInt()
+	                                          * sizeof(dl_uint8_t)),
+	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
+	                                          * sizeof(dl_uint8_t))));
+	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
+	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
+
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 														 * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
@@ -344,6 +356,9 @@ int main (int argc, char *argv[]) {
 		else if ((*g_settings)[settingEnum_repl_environment]->getString() == "game") {
 			repl.repl_nonblocking(gameCompiler, gameVm);
 		}
+		else if ((*g_settings)[settingEnum_repl_environment]->getString() == "gui") {
+			repl.repl_nonblocking(guiCompiler, guiVm);
+		}
 		else {
 			// Don't freeze the REPL when the REPL setting is wrong.
 			repl.repl_nonblocking(configCompiler, configVm);
@@ -356,6 +371,10 @@ int main (int argc, char *argv[]) {
 		}
 		if (gameVm->garbageCollect()) {
 			error("Game VM garbage collection failed");
+			return 1;
+		}
+		if (guiVm->garbageCollect()) {
+			error("Gui VM garbage collection failed");
 			return 1;
 		}
 	}
