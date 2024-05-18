@@ -20,6 +20,7 @@
 #include "scripting.hpp"
 #include "render_window.hpp"
 #include "repl.hpp"
+#include "gui.hpp"
 
 SettingsList *g_settings;
 
@@ -83,15 +84,17 @@ int main_switchReplEnvironment(Setting *setting) {
 	return 0;
 }
 
-int main_loadSettings(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
-	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
-	std::string configFileName = (*g_settings)[settingEnum_config_file]->getString();
-	if (configFileName == "") return 0;
-	std::ifstream configFileStream(configFileName);
+int main_loadDlFile(std::shared_ptr<DuckVM> duckVm, std::shared_ptr<DuckLisp> duckLisp, const std::string fileName) {
+	if (fileName == "") return 0;
+	std::ifstream configFileStream(fileName);
+	if (configFileStream.fail()) {
+		return 1;
+	}
 	std::stringstream configSs;
 	configSs << configFileStream.rdbuf();
+	// '\n' for readability when printing.
 	std::string configString = "(()\n" + configSs.str() + ")";
-	return eval(duckVM, duckLisp, configString);
+	return eval(duckVm, duckLisp, configString);
 }
 
 void main_initializeSettings() {
@@ -205,17 +208,6 @@ void main_parseCommandLineArguments(int argc, char *argv[]) {
 #undef ENTRY
 }
 
-int main_loadAutoexec(std::shared_ptr<DuckLisp> duckLisp, std::shared_ptr<DuckVM> duckVM) {
-	std::string configFileName = (*g_settings)[settingEnum_autoexec_file]->getString();
-	if (configFileName == "") return 0;
-	std::ifstream configFileStream(configFileName);
-	std::stringstream configSs;
-	configSs << configFileStream.rdbuf();
-	// '\n' for readability when printing.
-	std::string configString = "(()\n" + configSs.str() + ")";
-	return eval(duckVM, duckLisp, configString);
-}
-
 int main (int argc, char *argv[]) {
 	main_initializeSettings();
 
@@ -238,8 +230,19 @@ int main (int argc, char *argv[]) {
 	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
 
 	// Precedence is "config.dl", "autoexec.dl", then CLI. The last change is the one that applies.
-	main_loadSettings(configCompiler, configVm);
-	main_loadAutoexec(configCompiler, configVm);
+	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
+	{
+		const std::string file = (*g_settings)[settingEnum_config_file]->getString();
+		if (main_loadDlFile(configVm, configCompiler, file)) {
+			error("Could not load file \"" + file + "\".");
+		}
+	}
+	{
+		const std::string file = (*g_settings)[settingEnum_autoexec_file]->getString();
+		if (main_loadDlFile(configVm, configCompiler, file)) {
+			error("Could not load file \"" + file + "\".");
+		}
+	}
 	main_parseCommandLineArguments(argc, argv);
 
 	Repl repl{};
@@ -281,10 +284,10 @@ int main (int argc, char *argv[]) {
 	// std::cout << window.getRefreshRate() << "\n";
 
 	// // Initialize GUI, register callbacks, and link global GUI context into VM.
-	// Gui gui(window, guiVm, guiCompiler);
+	Gui gui{};
 
 	//Variables used for main while loop
-	// j: This variable could be set to false using a DL callback. Maybe in both the config and game VMs.
+	// j: This variable could be set to false using a DL callback. Maybe in all VMs.
 	bool gameRunning = true;
 	SDL_Event event;
 	gameState game_state = SINGLEPLAYER;
@@ -296,7 +299,14 @@ int main (int argc, char *argv[]) {
 	dstrect.w = 512;
 	dstrect.h = 512;
 
-	// gui.present("main-menu")
+	{
+		const std::string guiFile = (*g_settings)[settingEnum_gui_file]->getString();
+		if (main_loadDlFile(guiVm, guiCompiler, guiFile)) {
+			critical_error("Could not load file \"" + guiFile + "\".");
+		}
+	}
+
+	eval(guiVm, guiCompiler, "present main-menu");
 
 	while(gameRunning)
 	{
@@ -304,33 +314,26 @@ int main (int argc, char *argv[]) {
 		{
 			case MAIN_MENU:
 				// gameRunning = !MM_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, &guiButtons, boardWidth, boardHeight);
-				// GAME_STATE = SINGLEPLAYER;
-				// game_state = gui.exec("game-state").integer;
-				if (game_state != MAIN_MENU) {
-					/* j: Compile "main.dl" for the selected game type.
-						  Execute the compiled bytecode a single time. */
-				}
+				// game_state = gui.eval("game-state").integer;
 				if (game_state == SINGLEPLAYER) {
-					debug("Now in Singleplayer");
-					//! INIT GAME
+					debug("Entering Singleplayer");
+					// Init game.
 					// j: Call the "init" global function if it exists.
-					// gui.exec("present singleplayer")
+					eval(guiVm, guiCompiler, "present singleplayer");
 				}
 				else if (game_state == MULTIPLAYER) {
-					debug("Now in Multiplayer");
-					//! INIT GAME
+					debug("Entering Multiplayer");
+					// Init game.
 					// j: Call the "init" global function if it exists.
-					// gui.exec("present multiplayer")
+					eval(guiVm, guiCompiler, "present multiplayer");
 				}
 				break;
 
 			case MULTIPLAYER:
-				// j: Every iteration a series of DL functions will be called. You will decide what those functions are.
 				// gameRunning = !MP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
 			case SINGLEPLAYER:
-				// j: Every iteration a series of DL functions will be called. You will decide what those functions are.
 				// gameRunning = !SP_EventHandle(&event, window, renderer, &GAME_STATE, p1Color, p2Color, &boardButtons, boardWidth, boardHeight);
 				break;
 
@@ -353,11 +356,9 @@ int main (int argc, char *argv[]) {
 		}
 
 		window.clear();
-		// gui.render();
+		gui.render(&window);
 		window.render(testTexture, dstrect);
 		window.display();
-
-		// funcall(configVm, configCompiler, "sum", 3);
 
 		if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
 			repl.repl_nonblocking(configCompiler, configVm);

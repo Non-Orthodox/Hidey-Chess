@@ -27,7 +27,7 @@ set(CORE core/log.cpp
   core/scripting.cpp
   core/render_window.cpp
   core/repl.cpp
-  )
+  core/gui.cpp)
 
 add_definitions(-DUSE_PARENTHESIS_INFERENCE)
 
