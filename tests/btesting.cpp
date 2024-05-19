@@ -1,17 +1,15 @@
 #include <iostream>
+#include <array>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
 int main ()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
-    
-    // if (!(IMG_Init(IMG_INIT_PNG)))
-    //     std::cout << "IMG_Init Error: " << SDL_GetError() << "\n";
+    std::array<uint16_t,2> a {30,100};
 
-
+    std::size_t res = *((uint32_t*)(a.data()));
+    std::cout << res << '\n';
 
     return 0;
 }

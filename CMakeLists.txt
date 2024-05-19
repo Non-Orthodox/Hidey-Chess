@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # Project Name
-project(Hidey-Chess VERSION 0.000001)
+project(Hidey-Chess VERSION 0.00001)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -27,7 +27,8 @@ set(CORE core/log.cpp
   core/scripting.cpp
   core/render_window.cpp
   core/repl.cpp
-  core/gui.cpp)
+  core/gui.cpp
+  core/game_model/board.cpp)
 
 add_definitions(-DUSE_PARENTHESIS_INFERENCE)
 
