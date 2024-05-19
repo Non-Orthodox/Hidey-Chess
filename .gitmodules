@@ -1,3 +1,6 @@
 [submodule "duck-lisp"]
 	path = duck-lisp
 	url = https://github.com/oitzujoey/duck-lisp
+[submodule "FancyConsole"]
+	path = FancyConsole
+	url = https://github.com/Non-Orthodox/FancyConsole.git
