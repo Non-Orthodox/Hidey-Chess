@@ -30,6 +30,8 @@ DuckLisp::DuckLisp(const std::size_t hunk_size) {
 		FREE(duckLisp.memoryAllocation->memory);
 		return;
 	}
+
+	duckLisp.userData = &sharedUserData;
 }
 
 DuckLisp::~DuckLisp() {
@@ -54,6 +56,14 @@ int DuckLisp::registerCallback(const std::string name,
 	return e;
 }
 
+void *DuckLisp::getUserDataByName(const std::string name) {
+	return (*static_cast<std::map<std::string,void *>*>(duckLisp.userData))[name];
+}
+
+void DuckLisp::setUserDataByName(const std::string name, void *value) {
+	(*static_cast<std::map<std::string,void *>*>(duckLisp.userData))[name] = value;
+}
+
 
 
 DuckVM::DuckVM(const std::size_t hunk_size, const std::size_t maxObjects) {
@@ -75,6 +85,8 @@ DuckVM::DuckVM(const std::size_t hunk_size, const std::size_t maxObjects) {
 		FREE(duckVM.memoryAllocation->memory);
 		return;
 	}
+
+	duckVM.userData = &sharedUserData;
 }
 
 DuckVM::~DuckVM() {
@@ -95,6 +107,14 @@ dl_error_t DuckVM::garbageCollect() {
 	return duckVM_garbageCollect(&duckVM);
 }
 
+void *DuckVM::getUserDataByName(const std::string name) {
+	return (*static_cast<std::map<std::string,void *>*>(duckVM.userData))[name];
+}
+
+void DuckVM::setUserDataByName(const std::string name, void *value) {
+	(*static_cast<std::map<std::string,void *>*>(duckVM.userData))[name] = value;
+}
+
 
 
 int registerCallback(std::shared_ptr<DuckVM> duckVM,
@@ -113,9 +133,7 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
 	return error;
 }
 
-int eval(std::shared_ptr<DuckVM> duckVM,
-         std::shared_ptr<DuckLisp> duckLisp,
-         const std::string source) {
+int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, const std::string source) {
 	dl_error_t loadError;
 	dl_error_t runtimeError;
 	unsigned char *bytecode = nullptr;

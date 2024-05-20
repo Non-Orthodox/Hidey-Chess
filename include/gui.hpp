@@ -6,8 +6,7 @@
 
 class Gui {
 private:
-	std::shared_ptr<DuckVM> duckVM;
-	std::shared_ptr<DuckLisp> duckLisp;
 public:
+	Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp);
 	void render(RenderWindow *window);
 };

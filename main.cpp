@@ -283,8 +283,8 @@ int main (int argc, char *argv[]) {
 						(*g_settings)[settingEnum_window_height]->getInt());
 	// std::cout << window.getRefreshRate() << "\n";
 
-	// // Initialize GUI, register callbacks, and link global GUI context into VM.
-	Gui gui{};
+	// Do not ever copy this object.
+	Gui gui(guiVm, guiCompiler);
 
 	//Variables used for main while loop
 	// j: This variable could be set to false using a DL callback. Maybe in all VMs.
@@ -292,12 +292,13 @@ int main (int argc, char *argv[]) {
 	SDL_Event event;
 	gameState game_state = SINGLEPLAYER;
 
-	SDL_Texture* testTexture = window.loadTexture("../res/chess/images/knight.png");
-	SDL_Rect dstrect;
-	dstrect.x = 400;
-	dstrect.y = 100;
-	dstrect.w = 512;
-	dstrect.h = 512;
+	// j: Removing this because I am attempting to replicate it with the new widget system.
+	// SDL_Texture* testTexture = window.loadTexture("../res/chess/images/knight.png");
+	// SDL_Rect dstrect;
+	// dstrect.x = 400;
+	// dstrect.y = 100;
+	// dstrect.w = 512;
+	// dstrect.h = 512;
 
 	{
 		const std::string guiFile = (*g_settings)[settingEnum_gui_file]->getString();
@@ -355,9 +356,10 @@ int main (int argc, char *argv[]) {
 				gameRunning = false;
 		}
 
-		window.clear();
+		// j: Removing this because I am trying to replicate it through the widget system.
+		// window.clear();
 		gui.render(&window);
-		window.render(testTexture, dstrect);
+		// window.render(testTexture, dstrect);
 		window.display();
 
 		if ((*g_settings)[settingEnum_repl_environment]->getString() == "config") {
