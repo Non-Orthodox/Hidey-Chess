@@ -44,15 +44,20 @@ dl_error_t DuckLisp::print_errors() {
 	return dl_array_clear(&duckLisp.errors);
 }
 
+dl_error_t DuckLisp::registerParserAction(const std::string name,
+                                          dl_error_t (*callback)(duckLisp_t*, duckLisp_ast_compoundExpression_t*)) {
+	return duckLisp_addParserAction(&duckLisp, callback, (dl_uint8_t *) name.c_str(), name.length());
+}
+
 int DuckLisp::registerCallback(const std::string name,
                                const std::string typeString,
                                dl_error_t (*callback)(duckVM_t *)) {
 	dl_error_t e = duckLisp_linkCFunction(&duckLisp,
 	                                      callback,
 	                                      (dl_uint8_t *) name.c_str(),
-	                                      name.size(),
+	                                      name.length(),
 	                                      (dl_uint8_t *) typeString.c_str(),
-	                                      typeString.size());
+	                                      typeString.length());
 	return e;
 }
 
@@ -128,7 +133,7 @@ int registerCallback(std::shared_ptr<DuckVM> duckVM,
 	if (error) return error;
 	error = duckVM->registerCallback(duckLisp_symbol_nameToValue(&duckLisp->duckLisp,
 	                                                             (dl_uint8_t *) name.c_str(),
-	                                                             name.size()),
+	                                                             name.length()),
 	                                 callback);
 	return error;
 }
@@ -191,7 +196,7 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 // 		return e;
 // 	}
 
-// 	std::ptrdiff_t key = duckLisp_symbol_nameToValue(&duckLisp->duckLisp, (dl_uint8_t *) name.c_str(), name.size());
+// 	std::ptrdiff_t key = duckLisp_symbol_nameToValue(&duckLisp->duckLisp, (dl_uint8_t *) name.c_str(), name.length());
 // 	e = duckVM_pushGlobal(&duckVM->duckVM, key);
 // 	if (e) {
 // 		// error("Could not find global function \""

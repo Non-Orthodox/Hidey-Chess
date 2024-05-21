@@ -5,8 +5,11 @@ setting-set quote #disable_sdl false
 setting-set quote #log_level 5
 setting-set quote #log_file ""
 setting-set quote #game_compiler_heap_size 1000000
-setting-set quote #autoexec_file "../autoexec.dl"
-setting-set quote #config_file "../config.dl"
+setting-set quote #gui_compiler_heap_size 1000000
+setting-set quote #autoexec_script "autoexec"
+setting-set quote #config_script "config"
+setting-set quote #gui_script "gui"
+setting-set quote #scripts_directory "../scripts/"
 setting-set quote #disassemble false
 setting-set quote #repl true
 setting-set quote #repl_environment "config"

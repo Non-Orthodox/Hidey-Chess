@@ -341,6 +341,9 @@ public:
 	Setting *find(std::string name) {
 		return &array[map.at(name)];
 	}
+	bool contains(std::string name) {
+		return map.count(name) > 0;
+	}
 	auto begin() {
 		return array.begin();
 	}
@@ -372,9 +375,10 @@ extern SettingsList *g_settings;
 	ENTRY(gui_compiler_heap_size, 1000000, unlock, save) \
 	ENTRY(gui_vm_heap_size, 1000000, lock, dont_save) \
 	ENTRY(gui_vm_max_objects, 1000, lock, dont_save) \
-	ENTRY(autoexec_file, "../autoexec.dl", lock, save) \
-	ENTRY(config_file, "../config.dl", lock, save) \
-	ENTRY(gui_file, "../gui.dl", lock, save) \
+	ENTRY(autoexec_script, "autoexec", lock, save) \
+	ENTRY(config_script, "config", lock, save) \
+	ENTRY(gui_script, "gui", lock, save) \
+	ENTRY(scripts_directory, "../scripts/", lock, save) \
 	ENTRY(disassemble, false, unlock, save) \
 	ENTRY(repl, false, unlock, save) \
 	ENTRY(repl_environment, "config", unlock, save) \

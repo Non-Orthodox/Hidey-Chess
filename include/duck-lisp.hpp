@@ -18,6 +18,8 @@ public:
 	DuckLisp(const std::size_t);
 	~DuckLisp();
 	dl_error_t print_errors();
+	dl_error_t registerParserAction(const std::string name,
+	                                dl_error_t (*callback)(duckLisp_t*, duckLisp_ast_compoundExpression_t*));
 	int registerGenerator();
 	int registerCallback(const std::string name, const std::string typeString, dl_error_t (*callback)(duckVM_t *));
 	void *getUserDataByName(const std::string name);

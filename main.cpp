@@ -1,3 +1,4 @@
+#include "file_utilities.hpp"
 #define SDL_MAIN_HANDLED
 
 #include <cstddef>
@@ -45,9 +46,8 @@ int main_saveSettings(Setting *setting) {
 		setting->set("");
 		return 0;
 	}
-	info("Saving settings.");
-	std::cout << "Saving settings.";
-	auto saveFileName = (*g_settings)[settingEnum_config_file]->getString();
+	auto saveFileName = scriptNameToFileName((*g_settings)[settingEnum_config_script]->getString());
+	info("Saving settings to \"" + saveFileName + "\".");
 	std::ofstream saveFileStream(saveFileName);
 	for (auto &setting: *g_settings) {
 		if (!setting.save) continue;
@@ -232,13 +232,13 @@ int main (int argc, char *argv[]) {
 	// Precedence is "config.dl", "autoexec.dl", then CLI. The last change is the one that applies.
 	(*g_settings)[settingEnum_save]->callback = main_saveSettings;
 	{
-		const std::string file = (*g_settings)[settingEnum_config_file]->getString();
+		const std::string file = scriptNameToFileName((*g_settings)[settingEnum_config_script]->getString());
 		if (main_loadDlFile(configVm, configCompiler, file)) {
 			error("Could not load file \"" + file + "\".");
 		}
 	}
 	{
-		const std::string file = (*g_settings)[settingEnum_autoexec_file]->getString();
+		const std::string file = scriptNameToFileName((*g_settings)[settingEnum_autoexec_script]->getString());
 		if (main_loadDlFile(configVm, configCompiler, file)) {
 			error("Could not load file \"" + file + "\".");
 		}
@@ -262,6 +262,7 @@ int main (int argc, char *argv[]) {
 	                                          * sizeof(dl_uint8_t)),
 	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
 	                                          * sizeof(dl_uint8_t))));
+	guiCompiler->registerParserAction("include", script_action_include);
 	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
 	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
 	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
@@ -301,7 +302,7 @@ int main (int argc, char *argv[]) {
 	// dstrect.h = 512;
 
 	{
-		const std::string guiFile = (*g_settings)[settingEnum_gui_file]->getString();
+		const std::string guiFile = scriptNameToFileName((*g_settings)[settingEnum_gui_script]->getString());
 		if (main_loadDlFile(guiVm, guiCompiler, guiFile)) {
 			critical_error("Could not load file \"" + guiFile + "\".");
 		}

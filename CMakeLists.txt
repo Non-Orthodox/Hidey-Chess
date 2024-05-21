@@ -28,7 +28,8 @@ set(CORE core/log.cpp
   core/render_window.cpp
   core/repl.cpp
   core/gui.cpp
-  core/game_model/board.cpp)
+  core/game_model/board.cpp
+  core/file_utilities.cpp)
 
 add_definitions(-DUSE_PARENTHESIS_INFERENCE)
 
