@@ -17,6 +17,130 @@ extern "C" {
 dl_error_t script_callback_print(duckVM_t *duckVM);
 
 
+/* Parser actions */
+
+
+/* (include <script-name>::String)
+   Do not give the path or file extension. */
+dl_error_t script_action_include(duckLisp_t *dlc, duckLisp_ast_compoundExpression_t *ce) {
+	dl_error_t e = dl_error_ok;
+	dl_error_t eError = dl_error_ok;
+	dl_array_t eString;
+	defer(dl_array_quit(&eString));
+	(void) dl_array_init(&eString, dlc->memoryAllocation, sizeof(char), dl_array_strategy_double);
+
+	duckLisp_ast_expression_t *expression = &ce->value.expression;
+	FILE *sourceFile = NULL;
+	int tempInt = 0;
+	std::string sourceCode;
+	duckLisp_ast_compoundExpression_t ast;
+	(void) duckLisp_ast_compoundExpression_init(&ast);
+
+	/* Check arguments for call and type errors. */
+
+	e = duckLisp_checkArgsAndReportError(dlc, *expression, 2, dl_false);
+	if (e) return e;
+
+	e = duckLisp_checkTypeAndReportError(dlc,
+	                                     expression->compoundExpressions[0].value.identifier,
+	                                     expression->compoundExpressions[1],
+	                                     duckLisp_ast_type_identifier);
+	if (e) return e;
+
+	auto scriptName = std::string((char *) expression->compoundExpressions[1].value.identifier.value,
+	                              expression->compoundExpressions[1].value.identifier.value_length);
+
+	// Sanitize script name. Must only contain alphanumeric characters.
+
+	std::regex nameRegex("[a-z0-9]+");
+	auto valid = std::regex_match(scriptName, nameRegex);
+	if (!valid) {
+		error("Attempted to include script with an illegal name: \"" + scriptName + "\"");
+		return dl_error_invalidValue;
+	}
+
+	auto fileName = scriptNameToFileName(scriptName);
+	debug("Including file \"" + fileName + "\".");
+
+	/* Fetch script. */
+
+	sourceCode += "(";
+
+	sourceFile = fopen(fileName.c_str(), "r");
+	if (sourceFile == NULL) {
+		error("Could not open file \"" + fileName + "\".\n");
+		return dl_error_nullPointer;
+	}
+	while ((tempInt = fgetc(sourceFile)) != EOF) {
+		sourceCode += tempInt & 0xFF;
+	}
+	if (fclose(sourceFile)) {
+		warning("Failed to close file \"" + fileName + "\".");
+	}
+
+	sourceCode += ")";
+
+	/* Parse script. */
+
+	{
+		dl_ptrdiff_t index = 0;
+		e = duckLisp_parse_compoundExpression(dlc,
+		                                      dl_false,
+		                                      (dl_uint8_t *) fileName.c_str(),
+		                                      fileName.length(),
+		                                      (dl_uint8_t *) sourceCode.c_str(),
+		                                      sourceCode.length(),
+		                                      &ast,
+		                                      &index,
+		                                      dl_true);
+		if (e) return e;
+	}
+
+	// Free the original expression.
+	{
+		duckLisp_ast_compoundExpression_t ce;
+		ce.type = duckLisp_ast_type_expression;
+		ce.value.expression = *expression;
+		e = duckLisp_ast_compoundExpression_quit(dlc->memoryAllocation, &ce);
+		if (e) return e;
+	}
+
+	// Replace the expression with `__noscope` and then the body of the just read file.
+
+	e = DL_MALLOC(dlc->memoryAllocation,
+	              &expression->compoundExpressions,
+	              ast.value.expression.compoundExpressions_length + 1,
+	              duckLisp_ast_compoundExpression_t);
+	if (e) return e;
+	expression->compoundExpressions_length = ast.value.expression.compoundExpressions_length + 1;
+
+	{
+		const std::string identifierString("__noscope");
+		duckLisp_ast_identifier_t identifier;
+		identifier.value_length = identifierString.length();
+		e = DL_MALLOC(dlc->memoryAllocation, &identifier.value, identifier.value_length, char);
+		if (e) return e;
+		// Yes, this is dirty macro abuse.
+		(void) std::memcpy(identifier.value, identifierString.c_str(), identifierString.length() * sizeof(char));
+		expression->compoundExpressions[0].type = duckLisp_ast_type_identifier;
+		expression->compoundExpressions[0].value.identifier = identifier;
+	}
+
+	(void) std::memcpy(&expression->compoundExpressions[1],
+	                   ast.value.expression.compoundExpressions,
+	                   (ast.value.expression.compoundExpressions_length
+	                    * sizeof(duckLisp_ast_compoundExpression_t)));
+
+	(void) DL_FREE(dlc->memoryAllocation, &ast.value.expression.compoundExpressions);
+
+	return e;
+}
+
+
+
+/* Callbacks */
+
+
 dl_error_t script_callback_printCons(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
@@ -99,6 +223,7 @@ dl_error_t script_callback_printCons(duckVM_t *duckVM) {
  cleanup: return e;
 }
 
+// print value::Any
 dl_error_t script_callback_print(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
@@ -486,118 +611,3 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 	return e;
 }
 
-/* (include <script-name>::String)
-   Do not give the path or file extension. */
-dl_error_t script_action_include(duckLisp_t *dlc, duckLisp_ast_compoundExpression_t *ce) {
-	dl_error_t e = dl_error_ok;
-	dl_error_t eError = dl_error_ok;
-	dl_array_t eString;
-	defer(dl_array_quit(&eString));
-	(void) dl_array_init(&eString, dlc->memoryAllocation, sizeof(char), dl_array_strategy_double);
-
-	duckLisp_ast_expression_t *expression = &ce->value.expression;
-	FILE *sourceFile = NULL;
-	int tempInt = 0;
-	std::string sourceCode;
-	duckLisp_ast_compoundExpression_t ast;
-	(void) duckLisp_ast_compoundExpression_init(&ast);
-
-	/* Check arguments for call and type errors. */
-
-	e = duckLisp_checkArgsAndReportError(dlc, *expression, 2, dl_false);
-	if (e) return e;
-
-	e = duckLisp_checkTypeAndReportError(dlc,
-	                                     expression->compoundExpressions[0].value.identifier,
-	                                     expression->compoundExpressions[1],
-	                                     duckLisp_ast_type_identifier);
-	if (e) return e;
-
-	auto scriptName = std::string((char *) expression->compoundExpressions[1].value.identifier.value,
-	                              expression->compoundExpressions[1].value.identifier.value_length);
-
-	// Sanitize script name. Must only contain alphanumeric characters.
-
-	std::regex nameRegex("[a-z0-9]+");
-	auto valid = std::regex_match(scriptName, nameRegex);
-	if (!valid) {
-		error("Attempted to include script with an illegal name: \"" + scriptName + "\"");
-		return dl_error_invalidValue;
-	}
-
-	auto fileName = scriptNameToFileName(scriptName);
-	debug("Including file \"" + fileName + "\".");
-
-	/* Fetch script. */
-
-	sourceCode += "(";
-
-	sourceFile = fopen(fileName.c_str(), "r");
-	if (sourceFile == NULL) {
-		error("Could not open file \"" + fileName + "\".\n");
-		return dl_error_nullPointer;
-	}
-	while ((tempInt = fgetc(sourceFile)) != EOF) {
-		sourceCode += tempInt & 0xFF;
-	}
-	if (fclose(sourceFile)) {
-		warning("Failed to close file \"" + fileName + "\".");
-	}
-
-	sourceCode += ")";
-
-	/* Parse script. */
-
-	{
-		dl_ptrdiff_t index = 0;
-		e = duckLisp_parse_compoundExpression(dlc,
-		                                      dl_false,
-		                                      (dl_uint8_t *) fileName.c_str(),
-		                                      fileName.length(),
-		                                      (dl_uint8_t *) sourceCode.c_str(),
-		                                      sourceCode.length(),
-		                                      &ast,
-		                                      &index,
-		                                      dl_true);
-		if (e) return e;
-	}
-
-	// Free the original expression.
-	{
-		duckLisp_ast_compoundExpression_t ce;
-		ce.type = duckLisp_ast_type_expression;
-		ce.value.expression = *expression;
-		e = duckLisp_ast_compoundExpression_quit(dlc->memoryAllocation, &ce);
-		if (e) return e;
-	}
-
-	// Replace the expression with `__noscope` and then the body of the just read file.
-
-	e = DL_MALLOC(dlc->memoryAllocation,
-	              &expression->compoundExpressions,
-	              ast.value.expression.compoundExpressions_length + 1,
-	              duckLisp_ast_compoundExpression_t);
-	if (e) return e;
-	expression->compoundExpressions_length = ast.value.expression.compoundExpressions_length + 1;
-
-	{
-		const std::string identifierString("__noscope");
-		duckLisp_ast_identifier_t identifier;
-		identifier.value_length = identifierString.length();
-		e = DL_MALLOC(dlc->memoryAllocation, &identifier.value, identifier.value_length, char);
-		if (e) return e;
-		// Yes, this is dirty macro abuse.
-		(void) std::memcpy(identifier.value, identifierString.c_str(), identifierString.length() * sizeof(char));
-		expression->compoundExpressions[0].type = duckLisp_ast_type_identifier;
-		expression->compoundExpressions[0].value.identifier = identifier;
-	}
-
-	(void) std::memcpy(&expression->compoundExpressions[1],
-	                   ast.value.expression.compoundExpressions,
-	                   (ast.value.expression.compoundExpressions_length
-	                    * sizeof(duckLisp_ast_compoundExpression_t)));
-
-	(void) DL_FREE(dlc->memoryAllocation, &ast.value.expression.compoundExpressions);
-
-	return e;
-}
