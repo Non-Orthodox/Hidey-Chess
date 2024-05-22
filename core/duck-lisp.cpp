@@ -40,8 +40,14 @@ DuckLisp::~DuckLisp() {
 }
 
 dl_error_t DuckLisp::print_errors() {
+	dl_error_t e = dl_error_ok;
+	if (duckLisp.errors.elements_length == 0) return e;
+	(void) error(std::string((char *) duckLisp.inferrerLog.elements, duckLisp.inferrerLog.elements_length));
+	e = dl_array_clear(&duckLisp.inferrerLog);
+	if (e) return e;
 	(void) error(std::string((char *) duckLisp.errors.elements, duckLisp.errors.elements_length));
-	return dl_array_clear(&duckLisp.errors);
+	e = dl_array_clear(&duckLisp.errors);
+	return e;
 }
 
 dl_error_t DuckLisp::registerParserAction(const std::string name,

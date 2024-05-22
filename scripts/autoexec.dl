@@ -1,17 +1,14 @@
-(defun println (m)
-       print m
-       print "\n"
-       m)
+(include library)
 
-(defmacro g (variable)
-          ;; Get value of setting.
-          (list (quote #setting-get) (list (quote #__quote) variable)))
-(defmacro s (variable value)
-          ;; Set value of setting.
-          (list (quote #setting-set) (list (quote #__quote) variable) value))
-(defmacro c (variable)
-          ;; Run callback of setting without changing its value.
-          (list (quote #s) variable (list (quote #g) variable)))
+(defmacro g (variable) (L)
+  ;; Get value of setting.
+  ` setting-get __quote , variable)
+(defmacro s (variable value) (L I)
+  ;; Set value of setting.
+  ` setting-set (__quote , variable) , value)
+(defmacro c (variable) (L)
+  ;; Run callback of setting without changing its value.
+  ` setting-set (__quote , variable) (setting-get (__quote , variable)))
 
 global log-level-debug 5
 global log-level-info 4
@@ -20,9 +17,10 @@ global log-level-error 2
 global log-level-critical-error 1
 global log-level-disabled 0
 
-global println lambda (m) println m
+#(global println #println)
 
-;; (s log_level log-level-debug)
-;; (s log_file "hidey-chess.log")
-;; (c help)
+;; (println g peer_ip_address ":" g peer_network_port)
 
+;; s log_level log-level-debug
+;; s log_file "hidey-chess.log"
+;; c help

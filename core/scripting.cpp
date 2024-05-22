@@ -1,5 +1,4 @@
 #include "scripting.hpp"
-#include "duck-lisp/DuckLib/core.h"
 #include "file_utilities.hpp"
 #include <iostream>
 #include <cstring>
@@ -610,4 +609,3 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 	// stack: value
 	return e;
 }
-

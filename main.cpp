@@ -286,6 +286,7 @@ int main (int argc, char *argv[]) {
 						(*g_settings)[settingEnum_window_height]->getInt());
 	// std::cout << window.getRefreshRate() << "\n";
 
+	// Register additional callbacks with GUI's DL instance.
 	// Do not ever copy this object.
 	Gui gui(guiVm, guiCompiler);
 
