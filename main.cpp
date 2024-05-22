@@ -267,7 +267,7 @@ int main (int argc, char *argv[]) {
 	guiCompiler->registerParserAction("include", script_action_include);
 	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
 	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
-	registerCallback(configVm, configCompiler, "setting-set", "(I I)", script_callback_set);
+	registerCallback(guiVm, guiCompiler, "setting-set", "(I I)", script_callback_set);
 
 	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
 		std::cout << "SDL_Init Error: " << SDL_GetError() << "\n";
