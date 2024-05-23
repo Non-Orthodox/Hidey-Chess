@@ -232,3 +232,19 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 
 // 	return dl_error_ok;
 // }
+
+void *getUserDataByName(duckVM_t *duckVM, const std::string name) {
+	return (*static_cast<std::map<std::string,void *>*>(duckVM->userData))[name];
+}
+
+void *getUserDataByName(duckLisp_t *duckLisp, const std::string name) {
+	return (*static_cast<std::map<std::string,void *>*>(duckLisp->userData))[name];
+}
+
+void setUserDataByName(duckVM_t *duckVM, const std::string name, void *value) {
+	(*static_cast<std::map<std::string,void *>*>(duckVM->userData))[name] = value;
+}
+
+void setUserDataByName(duckLisp_t *duckLisp, const std::string name, void *value) {
+	(*static_cast<std::map<std::string,void *>*>(duckLisp->userData))[name] = value;
+}

@@ -51,3 +51,8 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 //             std::shared_ptr<DuckLisp> duckLisp,
 //             const std::string name,
 //             const std::size_t numberOfArgs);
+
+void *getUserDataByName(duckVM_t *duckVM, const std::string name);
+void *getUserDataByName(duckLisp_t *duckLisp, const std::string name);
+void setUserDataByName(duckVM_t *duckVM, const std::string name, void *value);
+void setUserDataByName(duckLisp_t *duckLisp, const std::string name, void *value);
