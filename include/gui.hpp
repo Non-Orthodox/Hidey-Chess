@@ -22,6 +22,7 @@ struct GuiWidgetButton {};
 struct GuiWidgetGroup {};
 
 enum GuiObjectType {
+	invalid,
 	window,
 };
 

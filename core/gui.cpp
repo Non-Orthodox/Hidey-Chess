@@ -2,6 +2,7 @@
 #include "duck-lisp.hpp"
 #include "duck-lisp/duckVM.h"
 #include "log.h"
+#include <cstddef>
 
 
 dl_error_t gui_callback_makeInstance(duckVM_t *duckVM);
@@ -30,6 +31,33 @@ GuiObject::GuiObject(GuiObjectType type) {
 	}
 }
 
+size_t allocateObject(Gui *gui, GuiObjectType type) {
+	if (gui->freeList.empty()) {
+		gui->objectPool.push_back(GuiObject(type));
+		return gui->objectPool.size() - 1;
+	}
+	else {
+		size_t index = gui->freeList.back();
+		gui->freeList.pop_back();
+		return index;
+	}
+}
+
+void freeObject(Gui *gui, size_t objectIndex) {
+	gui->freeList.push_back(objectIndex);
+}
+
+GuiObjectType getTypeFromName(const std::string typeName) {
+	// Indexing type by name instead of integer is harder on C++, but this way the enumeration can't get out of sync
+	// with DL.
+	// If-else because I don't want to deal with a map.
+	if ("window" == typeName) {
+		return window;
+	}
+	return invalid;
+}
+
+
 
 /* Functions for use by duck-lisp. */
 
@@ -53,14 +81,16 @@ dl_error_t gui_callback_makeInstance(duckVM_t *duckVM) {
 	dl_size_t cTypeName_length;
 	e = duckVM_copyString(duckVM, &cTypeName, &cTypeName_length);
 	if (e) return e;
-	auto typeName = std::string((char *) cTypeName, cTypeName_length);
-	duckVM_pop(duckVM);
+	e = duckVM_pop(duckVM);
+	if (e) return e;
 
-	if ("window" == typeName) {
-		gui->objectPool.push_back(GuiObject(window));
-	}
+	size_t objectIndex = allocateObject(gui, getTypeFromName(std::string((char *) cTypeName, cTypeName_length)));
 
-	duckVM_pushNil(duckVM);
+	// FIXME: This is not an integer. This should be a new user-defined type.
+	e = duckVM_pushInteger(duckVM);
+	if (e) return e;
+	e = duckVM_setInteger(duckVM, objectIndex);
+	if (e) return e;
 
 	return e;
 }

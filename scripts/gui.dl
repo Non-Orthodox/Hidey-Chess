@@ -80,7 +80,6 @@ defaccessor _dimensions
 
 ;; Start main script.
 
-gui-make-instance "window"
 var window (Window-Handle)
 var knight (Texture)
 
