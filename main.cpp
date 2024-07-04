@@ -221,7 +221,8 @@ int main (int argc, char *argv[]) {
 	// This compiler and VM will be used to read config files and run a jank REPL.
 	std::shared_ptr<DuckLisp> configCompiler(new DuckLisp((*g_settings)[settingEnum_config_compiler_heap_size]->getInt()
 														  * sizeof(dl_uint8_t)));
-	std::shared_ptr<DuckVM> configVm(new DuckVM(((*g_settings)[settingEnum_config_vm_heap_size]->getInt()
+	std::shared_ptr<DuckVM> configVm(new DuckVM("config",
+	                                            ((*g_settings)[settingEnum_config_vm_heap_size]->getInt()
 												 * sizeof(dl_uint8_t)),
 												((*g_settings)[settingEnum_config_vm_max_objects]->getInt()
 												 * sizeof(dl_uint8_t))));
@@ -250,7 +251,8 @@ int main (int argc, char *argv[]) {
 
 	std::shared_ptr<DuckLisp> gameCompiler(new DuckLisp((*g_settings)[settingEnum_game_compiler_heap_size]->getInt()
 														 * sizeof(dl_uint8_t)));
-	std::shared_ptr<DuckVM> gameVm(new DuckVM(((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
+	std::shared_ptr<DuckVM> gameVm(new DuckVM("game",
+	                                          ((*g_settings)[settingEnum_game_vm_heap_size]->getInt()
 											   * sizeof(dl_uint8_t)),
 											  ((*g_settings)[settingEnum_game_vm_max_objects]->getInt()
 											   * sizeof(dl_uint8_t))));
@@ -260,7 +262,8 @@ int main (int argc, char *argv[]) {
 
 	std::shared_ptr<DuckLisp> guiCompiler(new DuckLisp((*g_settings)[settingEnum_gui_compiler_heap_size]->getInt()
 	                                                   * sizeof(dl_uint8_t)));
-	std::shared_ptr<DuckVM> guiVm(new DuckVM(((*g_settings)[settingEnum_gui_vm_heap_size]->getInt()
+	std::shared_ptr<DuckVM> guiVm(new DuckVM("gui",
+	                                         ((*g_settings)[settingEnum_gui_vm_heap_size]->getInt()
 	                                          * sizeof(dl_uint8_t)),
 	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
 	                                          * sizeof(dl_uint8_t))));

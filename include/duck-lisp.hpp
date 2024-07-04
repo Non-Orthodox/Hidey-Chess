@@ -32,7 +32,8 @@ private:
 public:
 	duckVM_t duckVM;
 	dl_memoryAllocation_t memoryAllocation;
-	DuckVM(const std::size_t, const std::size_t);
+	std::string instanceName;
+	DuckVM(const std::string, const std::size_t, const std::size_t);
 	~DuckVM();
 	dl_error_t print_errors();
 	int registerCallback(std::ptrdiff_t index, dl_error_t (*callback)(duckVM_t *));

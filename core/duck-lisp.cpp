@@ -77,8 +77,9 @@ void DuckLisp::setUserDataByName(const std::string name, void *value) {
 
 
 
-DuckVM::DuckVM(const std::size_t hunk_size, const std::size_t maxObjects) {
+DuckVM::DuckVM(const std::string instanceName, const std::size_t hunk_size, const std::size_t maxObjects) {
 	int e = 0;
+	this->instanceName = instanceName;
 	void *hunk = malloc(hunk_size);
 	if (!hunk) {
 		e = dl_error_outOfMemory;
@@ -174,7 +175,11 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 	runtimeError = duckVM_execute(&duckVM->duckVM, bytecode, bytecode_length);
 	// stack: object?
 	if (runtimeError) {
-		error("VM encountered a runtime error. (" + std::string((char *) dl_errorString[runtimeError]) + ")");
+		error("VM instance \""
+		      + duckVM->instanceName
+		      + "\" encountered a runtime error. ("
+		      + std::string((char *) dl_errorString[runtimeError])
+		      + ")");
 		return duckVM->print_errors();
 	}
 	if (duckVM->duckVM.stack.elements_length > 0) {
