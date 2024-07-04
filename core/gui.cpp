@@ -21,9 +21,12 @@ Gui::Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp) {
 }
 
 void Gui::render(RenderWindow *window) {
+	// TODO: Traverse linked list, not vector itself. Will preserve render order. This will also make it so free objects
+	//       do not have to be skipped over.
 	size_t objectPool_length = objectPool.size();
 	for (size_t object_index = 0; object_index < objectPool_length; object_index++) {
 		GuiObject object = objectPool[object_index];
+		if (!object.visible) continue;  // TODO: Window should always be visible.
 		switch (object.type) {
 		case GuiObjectType_free: break;
 		case GuiObjectType_window:
@@ -81,6 +84,18 @@ GuiObjectType getTypeFromName(const std::string typeName) {
 
 /* Functions for use by duck-lisp. */
 
+dl_error_t guiObject_destructor(duckVM_gclist_t *gclist, duckVM_object_t *userObject) {
+	dl_error_t e = dl_error_ok;
+
+	duckVM_t *duckVM = gclist->duckVM;
+	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
+	size_t index = (size_t) userObject;
+	(void) gui->freeObject(index);
+
+	return e;
+}
+
+
 // gui-make-instance type-name::String
 dl_error_t gui_callback_makeInstance(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
@@ -108,10 +123,9 @@ dl_error_t gui_callback_makeInstance(duckVM_t *duckVM) {
 	e = DL_FREE(duckVM->memoryAllocation, &cTypeName);
 	if (e) return e;
 
-	// FIXME: This is not an integer. This should be a new user-defined type so that garbage collection works properly.
-	e = duckVM_pushInteger(duckVM);
-	if (e) return e;
-	e = duckVM_setInteger(duckVM, objectIndex);
+	// Store the index in the pointer value.
+	duckVM_object_t userObject = duckVM_object_makeUser((void *) objectIndex, nullptr, guiObject_destructor);
+	e = duckVM_object_push(duckVM, &userObject);
 	if (e) return e;
 
 	return e;
@@ -134,20 +148,23 @@ dl_error_t gui_callback_getMember(duckVM_t *duckVM) {
 	if (e) return e;
 	// stack: object name object
 	{
-		dl_bool_t isInteger;
-		e = duckVM_isInteger(duckVM, &isInteger);
+		dl_bool_t isUser;
+		e = duckVM_isUser(duckVM, &isUser);
 		if (e) return e;
-		if (!isInteger) {
+		if (!isUser) {
 			error("First argument of `gui-get-member` should be a GuiObject.");
 			return dl_error_invalidValue;
 		}
 	}
 	dl_size_t guiObject_index;
-	e = duckVM_copyUnsignedInteger(duckVM, &guiObject_index);
-	if (e) return e;
-	e = duckVM_pop(duckVM);
-	if (e) return e;
+	{
+		duckVM_object_t userObject;
+		e = duckVM_object_pop(duckVM, &userObject);
+		if (e) return e;
+		guiObject_index = (size_t) userObject.value.user.data;
+	}
 	// stack: object name
+
 	// Assume it exists because we have garbage collection. Use-after-free should be harder to commit.
 	GuiObject object = gui->getObject(guiObject_index);
 
@@ -202,20 +219,23 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 	if (e) return e;
 	// stack: object name value object
 	{
-		dl_bool_t isInteger;
-		e = duckVM_isInteger(duckVM, &isInteger);
+		dl_bool_t isUser;
+		e = duckVM_isUser(duckVM, &isUser);
 		if (e) return e;
-		if (!isInteger) {
+		if (!isUser) {
 			error("First argument of `gui-set-member` should be a GuiObject.");
 			return dl_error_invalidValue;
 		}
 	}
-	dl_size_t guiObject_index;
-	e = duckVM_copyUnsignedInteger(duckVM, &guiObject_index);
-	if (e) return e;
-	e = duckVM_pop(duckVM);
-	if (e) return e;
+	size_t guiObject_index;
+	{
+		duckVM_object_t userObject;
+		e = duckVM_object_pop(duckVM, &userObject);
+		if (e) return e;
+		guiObject_index = (size_t) userObject.value.user.data;
+	}
 	// stack: object name value
+
 	// Assume it exists because we have garbage collection. Use-after-free should be harder to commit.
 	GuiObject object = gui->getObject(guiObject_index);
 
