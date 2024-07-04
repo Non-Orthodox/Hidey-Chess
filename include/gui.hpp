@@ -12,6 +12,7 @@ struct GuiWidgetWindow {
 		backgroundColor = {0, 0, 0};
 	}
 	dl_error_t setMember(duckVM_t *duckVM, const std::string name);
+	dl_error_t pushMember(duckVM_t *duckVM, const std::string name);
 };
 
 struct GuiWidgetImage {};
@@ -23,8 +24,9 @@ struct GuiWidgetButton {};
 struct GuiWidgetGroup {};
 
 enum GuiObjectType {
-	invalid,
-	window,
+	GuiObjectType_free,
+	GuiObjectType_invalid,
+	GuiObjectType_window,
 };
 
 struct GuiObject {
@@ -42,11 +44,12 @@ struct GuiObject {
 class Gui {
 private:
 public:
-	size_t allocateObject(GuiObjectType type);
-	void freeObject(size_t objectIndex);
-	GuiObject findObject(size_t objectIndex);
 	std::vector<size_t> freeList;  // Object indices that are free to use.
 	std::vector<GuiObject> objectPool;
+	size_t allocateObject(GuiObjectType type);
+	void freeObject(size_t objectIndex);
+	GuiObject getObject(size_t objectIndex);
+	void setObject(size_t objectIndex, GuiObject object);
 	Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp);
 	void render(RenderWindow *window);
 };

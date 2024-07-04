@@ -83,10 +83,11 @@ defaccessor _dimensions
 ;; Start main script.
 
 var window (Window-Handle)
-var knight (Texture)
+;; var knight (Texture)
 
 set _background-color window  blue
+println _background-color window
 
-set _file knight  "../res/chess/images/knight.png"
-set _position knight  P2 0 0
-set _dimensions knight  _dimensions window
+;; set _file knight  "../res/chess/images/knight.png"
+;; set _position knight  P2 0 0
+;; set _dimensions knight  _dimensions window
