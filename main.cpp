@@ -384,6 +384,7 @@ int main (int argc, char *argv[]) {
 		}
 
 		// Garbage collect every frame to prevent unexpected pauses? (pause *every* time, not randomly)
+		// This also ensures that destructors attached to DL objects are released in the same tick they became garbage.
 		if (configVm->garbageCollect()) {
 			error("Config VM garbage collection failed");
 			return 1;

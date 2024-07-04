@@ -11,6 +11,7 @@ struct GuiWidgetWindow {
 	GuiWidgetWindow() {
 		backgroundColor = {0, 0, 0};
 	}
+	dl_error_t setMember(duckVM_t *duckVM, const std::string name);
 };
 
 struct GuiWidgetImage {};
@@ -41,6 +42,9 @@ struct GuiObject {
 class Gui {
 private:
 public:
+	size_t allocateObject(GuiObjectType type);
+	void freeObject(size_t objectIndex);
+	GuiObject findObject(size_t objectIndex);
 	std::vector<size_t> freeList;  // Object indices that are free to use.
 	std::vector<GuiObject> objectPool;
 	Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp);

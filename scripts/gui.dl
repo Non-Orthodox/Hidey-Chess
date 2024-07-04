@@ -24,6 +24,7 @@ var blue Color 0 0 255
 ;; Introspected.
 var p2-type (make-type)
 #(global p2-type p2-type)
+;; 2D point
 (defun P2 (x y)
   ;; Introspected.
   make-instance p2-type (vector x y) nil)
@@ -41,7 +42,8 @@ var p2-type (make-type)
          declare-identifier (infer-and-get-next-argument) ())
 
 ;; This will create two functions "_name" and "set-_name". If the name is "_name" then the GUI object member that will
-;; be read and written is "name". `name' is an identifier.
+;; be read and written is "name". `name' is an identifier. "set-_name" is then registered with `set' so that
+;; `set (_name object) value` may be used instead of `set-_name object value`.
 (defmacro defaccessor (name) (L)
   var object (gensym "object")
   var setter-name (intern (concatenate "set-" (symbol-string name)))
