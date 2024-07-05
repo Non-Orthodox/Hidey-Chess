@@ -36,7 +36,8 @@ DuckLisp::DuckLisp(const std::size_t hunk_size) {
 
 DuckLisp::~DuckLisp() {
 	duckLisp_quit(&duckLisp);
-	FREE(duckLisp.memoryAllocation->memory);
+	if (duckLisp.memoryAllocation->memory)
+		FREE(duckLisp.memoryAllocation->memory);
 }
 
 dl_error_t DuckLisp::print_errors() {
@@ -179,6 +180,7 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 		return duckLisp->print_errors();
 	}
 	if (bytecode == nullptr) return 0;
+	defer(FREE(bytecode));
 	if ((*g_settings)[settingEnum_disassemble]->getBool()) {
 		dl_array_t disassembly;
 		dl_error_t e = duckLisp_disassemble(&disassembly,

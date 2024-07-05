@@ -53,10 +53,10 @@ struct GuiObject {
 class Gui {
 private:
 public:
-	std::vector<size_t> freeList;  // Object indices that are free to use.
-	std::vector<GuiObject> objectPool;
+	std::vector<size_t> freeList = {};  // Object indices that are free to use.
+	std::vector<GuiObject> objectPool = {};
 
-	Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp);
+	int setupDucklisp(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp);
 	size_t allocateObject(GuiObjectType type);
 	void freeObject(size_t objectIndex);
 	GuiObject getObject(size_t objectIndex);

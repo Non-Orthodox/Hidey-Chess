@@ -562,6 +562,7 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 	dl_size_t length = 0;
 	e = duckVM_copySymbolName(duckVM, &string, &length);
 	if (e) return e;
+	defer(DL_FREE(duckVM->memoryAllocation, &string));
 	e = duckVM_pop(duckVM);
 	if (e) return e;
 	// stack: name value
@@ -595,6 +596,7 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 		dl_size_t length = 0;
 		e = duckVM_copyString(duckVM, &string, &length);
 		if (e) return e;
+		defer(DL_FREE(duckVM->memoryAllocation, &string));
 		setting->set(std::string((char *) string, length));
 	}
 	else {

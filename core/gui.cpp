@@ -4,6 +4,7 @@
 #include "log.h"
 #include <cstddef>
 #include "file_utilities.hpp"
+#include "defer.hpp"
 
 
 dl_error_t gui_callback_makeInstance(duckVM_t *duckVM);
@@ -12,15 +13,21 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM);
 dl_error_t gui_generator_present(duckLisp_t*, duckLisp_compileState_t *, dl_array_t*, duckLisp_ast_expression_t*);
 
 
-Gui::Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp) {
+int Gui::setupDucklisp(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp) {
+	int e = 0;
 	// Slightly less global than global. Only this VM instance can see this object.
 	duckLisp->setUserDataByName("gui", this);
 	duckVM->setUserDataByName("gui", this);
 	duckVM->setUserDataByName("duck-lisp", duckLisp.get());  // VM needs access to symbol trie.
-	duckLisp->registerGenerator("present", gui_generator_present, "(L)");
-	registerCallback(duckVM, duckLisp, "gui-make-instance", "(I)", gui_callback_makeInstance);
-	registerCallback(duckVM, duckLisp, "gui-get-member", "(I I)", gui_callback_getMember);
-	registerCallback(duckVM, duckLisp, "gui-set-member", "(I I I)", gui_callback_setMember);
+	e = duckLisp->registerGenerator("present", gui_generator_present, "(L)");
+	if (e) return e;
+	e = registerCallback(duckVM, duckLisp, "gui-make-instance", "(I)", gui_callback_makeInstance);
+	if (e) return e;
+	e = registerCallback(duckVM, duckLisp, "gui-get-member", "(I I)", gui_callback_getMember);
+	if (e) return e;
+	e = registerCallback(duckVM, duckLisp, "gui-set-member", "(I I I)", gui_callback_setMember);
+	if (e) return e;
+	return e;
 }
 
 void Gui::render(RenderWindow *window) {
@@ -723,6 +730,7 @@ dl_error_t GuiWidgetImage::setMember(duckVM_t *duckVM, const std::string name) {
 			dl_size_t cFileString_length = 0;
 			e = duckVM_copyString(duckVM, &cFileString, &cFileString_length);
 			if (e) return e;
+			defer(DL_FREE(duckVM->memoryAllocation, &cFileString));
 			file = assetNameToFileName(std::string((char *) cFileString, cFileString_length));
 		}
 	}

@@ -260,6 +260,9 @@ int main (int argc, char *argv[]) {
 	registerCallback(gameVm, gameCompiler, "print", "(I)", script_callback_print);
 	registerCallback(gameVm, gameCompiler, "setting-get", "(I)", script_callback_get);
 
+	// Do not ever copy this object.
+	Gui gui{};
+
 	std::shared_ptr<DuckLisp> guiCompiler(new DuckLisp((*g_settings)[settingEnum_gui_compiler_heap_size]->getInt()
 	                                                   * sizeof(dl_uint8_t)));
 	std::shared_ptr<DuckVM> guiVm(new DuckVM("gui",
@@ -290,8 +293,7 @@ int main (int argc, char *argv[]) {
 	// std::cout << window.getRefreshRate() << "\n";
 
 	// Register additional callbacks with GUI's DL instance.
-	// Do not ever copy this object.
-	Gui gui(guiVm, guiCompiler);
+	gui.setupDucklisp(guiVm, guiCompiler);
 
 	//Variables used for main while loop
 	// j: This variable could be set to false using a DL callback. Maybe in all VMs.
