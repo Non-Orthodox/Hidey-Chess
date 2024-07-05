@@ -78,16 +78,24 @@ defaccessor _file
 defaccessor _position
 defaccessor _dimensions
 
+(defmacro deflayout (name &rest body) (L &rest 1 I)
+          #(` (global (, name) (lambda () (,@ body)))))
+
 
 
 ;; Start main script.
 
 var window (Window-Handle)
+
 ;; var knight (Texture)
-
-set _background-color window  blue
-println _background-color window
-
 ;; set _file knight  "../res/chess/images/knight.png"
-;; set _position knight  P2 0 0
-;; set _dimensions knight  _dimensions window
+;; set _visible false
+
+(deflayout main-menu
+           set _background-color window  blue
+           println _background-color window
+
+           ;; set _position knight  P2 0 0
+           ;; set _dimensions knight  _dimensions window
+           ;; set _visible true
+           )

@@ -20,6 +20,12 @@ public:
 	dl_error_t print_errors();
 	dl_error_t registerParserAction(const std::string name,
 	                                dl_error_t (*callback)(duckLisp_t*, duckLisp_ast_compoundExpression_t*));
+	dl_error_t registerGenerator(const std::string name,
+	                             dl_error_t (*callback)(duckLisp_t*,
+	                                                    duckLisp_compileState_t *,
+	                                                    dl_array_t*,
+	                                                    duckLisp_ast_expression_t*),
+	                             const std::string type);
 	int registerGenerator();
 	int registerCallback(const std::string name, const std::string typeString, dl_error_t (*callback)(duckVM_t *));
 	void *getUserDataByName(const std::string name);

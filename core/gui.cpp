@@ -473,3 +473,18 @@ dl_error_t GuiWidgetWindow::pushMember(duckVM_t *duckVM, const std::string name)
 
 	return e;
 }
+
+dl_error_t gui_generator_present(duckLisp_t *c,
+                                 duckLisp_compileState_t *cs,
+                                 dl_array_t *a,
+                                 duckLisp_ast_expression_t *ast) {
+	// (funcall name)
+	duckLisp_ast_identifier_t layoutName = ast->compoundExpressions[1].value.identifier;
+	duckLisp_ast_compoundExpression_t ce;
+	ce.type = duckLisp_ast_type_identifier;
+	ce.value.identifier = layoutName;
+	duckLisp_ast_expression_t ex;
+	ex.compoundExpressions_length = 1;
+	ex.compoundExpressions = &ce;
+	return duckLisp_compile_expression(c, cs, a, layoutName.value, layoutName.value_length, &ex, nullptr);
+}

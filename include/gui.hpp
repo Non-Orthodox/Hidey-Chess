@@ -56,3 +56,5 @@ public:
 	void setObject(size_t objectIndex, GuiObject object);
 	void render(RenderWindow *window);
 };
+
+dl_error_t gui_generator_present(duckLisp_t*, duckLisp_compileState_t *, dl_array_t*, duckLisp_ast_expression_t*);

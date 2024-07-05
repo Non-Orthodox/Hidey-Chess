@@ -55,6 +55,22 @@ dl_error_t DuckLisp::registerParserAction(const std::string name,
 	return duckLisp_addParserAction(&duckLisp, callback, (dl_uint8_t *) name.c_str(), name.length());
 }
 
+dl_error_t DuckLisp::registerGenerator(const std::string name,
+                                       dl_error_t (*callback)(duckLisp_t*,
+                                                              duckLisp_compileState_t *,
+                                                              dl_array_t*,
+                                                              duckLisp_ast_expression_t*),
+                                       const std::string type) {
+	return duckLisp_addGenerator(&duckLisp,
+	                             callback,
+	                             (dl_uint8_t *) name.c_str(),
+	                             name.length(),
+	                             (dl_uint8_t *) type.c_str(),
+	                             type.length(),
+	                             nullptr,
+	                             0);
+}
+
 int DuckLisp::registerCallback(const std::string name,
                                const std::string typeString,
                                dl_error_t (*callback)(duckVM_t *)) {
@@ -150,12 +166,13 @@ int eval(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp, con
 	dl_error_t runtimeError;
 	unsigned char *bytecode = nullptr;
 	dl_size_t bytecode_length = 0;
+	const std::string wrappedSource = "(() " + source + ")";
 	loadError = duckLisp_loadString(&duckLisp->duckLisp,
 	                                true,
 	                                &bytecode,
 	                                &bytecode_length,
-	                                (dl_uint8_t *) source.c_str(),
-	                                source.length(),
+	                                (dl_uint8_t *) wrappedSource.c_str(),
+	                                wrappedSource.length(),
 	                                DL_STR("Unknown"));
 	if (loadError) {
 		error("Failed to compile string. (" + std::string((char *) dl_errorString[loadError]) + ")");
