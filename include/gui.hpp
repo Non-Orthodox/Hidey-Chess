@@ -16,31 +16,38 @@ struct GuiWidgetWindow {
 	dl_error_t pushMember(duckVM_t *duckVM, const std::string name);
 };
 
-struct GuiWidgetImage {};
+struct GuiWidgetImage {
+	std::string file;
+	SDL_Texture *texture = nullptr;
+	SDL_Rect rect;
+
+	dl_error_t setMember(duckVM_t *duckVM, const std::string name);
+	dl_error_t pushMember(duckVM_t *duckVM, const std::string name);
+};
 
 struct GuiWidgetText {};
 
 struct GuiWidgetButton {};
 
-struct GuiWidgetGroup {};
-
 enum GuiObjectType {
 	GuiObjectType_free,
 	GuiObjectType_invalid,
 	GuiObjectType_window,
+	GuiObjectType_image,
 };
 
 struct GuiObject {
 	// A struct, because apparently unions are ridiculously hard to use in C++.
 	GuiWidgetWindow window;
-	// GuiWidgetImage image;
+	GuiWidgetImage image;
 	// GuiWidgetText text;
 	// GuiWidgetButton button;
-	// GuiWidgetGroup group;
 	GuiObjectType type;
 	bool visible = true;
 
 	GuiObject(GuiObjectType type);
+	dl_error_t pushVisible(duckVM_t *duckVM);
+	dl_error_t setVisible(duckVM_t *duckVM);
 };
 
 class Gui {
@@ -56,5 +63,3 @@ public:
 	void setObject(size_t objectIndex, GuiObject object);
 	void render(RenderWindow *window);
 };
-
-dl_error_t gui_generator_present(duckLisp_t*, duckLisp_compileState_t *, dl_array_t*, duckLisp_ast_expression_t*);

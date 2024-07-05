@@ -379,6 +379,7 @@ extern SettingsList *g_settings;
 	ENTRY(config_script, "config", lock, save) \
 	ENTRY(gui_script, "gui", lock, save) \
 	ENTRY(scripts_directory, "../scripts/", lock, save) \
+	ENTRY(game_root_directory, "../res/", lock, save) \
 	ENTRY(disassemble, false, unlock, save) \
 	ENTRY(repl, false, unlock, save) \
 	ENTRY(repl_environment, "config", unlock, save) \

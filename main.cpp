@@ -268,7 +268,6 @@ int main (int argc, char *argv[]) {
 	                                         ((*g_settings)[settingEnum_gui_vm_max_objects]->getInt()
 	                                          * sizeof(dl_uint8_t))));
 	guiCompiler->registerParserAction("include", script_action_include);
-	guiCompiler->registerGenerator("present", gui_generator_present, "(L)");
 	registerCallback(guiVm, guiCompiler, "print", "(I)", script_callback_print);
 	registerCallback(guiVm, guiCompiler, "setting-get", "(I)", script_callback_get);
 	registerCallback(guiVm, guiCompiler, "setting-set", "(I I)", script_callback_set);

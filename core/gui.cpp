@@ -3,18 +3,21 @@
 #include "duck-lisp/duckVM.h"
 #include "log.h"
 #include <cstddef>
+#include "file_utilities.hpp"
 
 
 dl_error_t gui_callback_makeInstance(duckVM_t *duckVM);
 dl_error_t gui_callback_getMember(duckVM_t *duckVM);
 dl_error_t gui_callback_setMember(duckVM_t *duckVM);
+dl_error_t gui_generator_present(duckLisp_t*, duckLisp_compileState_t *, dl_array_t*, duckLisp_ast_expression_t*);
 
 
 Gui::Gui(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp> duckLisp) {
 	// Slightly less global than global. Only this VM instance can see this object.
 	duckLisp->setUserDataByName("gui", this);
 	duckVM->setUserDataByName("gui", this);
-	duckVM->setUserDataByName("duck-lisp", duckLisp.get());
+	duckVM->setUserDataByName("duck-lisp", duckLisp.get());  // VM needs access to symbol trie.
+	duckLisp->registerGenerator("present", gui_generator_present, "(L)");
 	registerCallback(duckVM, duckLisp, "gui-make-instance", "(I)", gui_callback_makeInstance);
 	registerCallback(duckVM, duckLisp, "gui-get-member", "(I I)", gui_callback_getMember);
 	registerCallback(duckVM, duckLisp, "gui-set-member", "(I I I)", gui_callback_setMember);
@@ -25,12 +28,28 @@ void Gui::render(RenderWindow *window) {
 	//       do not have to be skipped over.
 	size_t objectPool_length = objectPool.size();
 	for (size_t object_index = 0; object_index < objectPool_length; object_index++) {
-		GuiObject object = objectPool[object_index];
-		if (!object.visible) continue;  // TODO: Window should always be visible.
+		GuiObject &object = objectPool[object_index];
 		switch (object.type) {
 		case GuiObjectType_free: break;
+		case GuiObjectType_image: {
+			auto &image = object.image;
+			// Load texture if not already loaded.
+			if (image.texture == nullptr && image.file != "") {
+				info("Loading image \"" + image.file + "\".");
+				auto *texture = window->loadTexture(image.file.c_str());
+				if (texture == nullptr) {
+					warning("Failed to load image \"" + image.file + "\".");
+					break;
+				}
+				image.texture = texture;
+			}
+			if (!object.visible) break;
+			window->render(image.texture, image.rect);
+			break;
+		}
 		case GuiObjectType_window:
 			// window->setBackground(object.window.backgroundColor);
+			window->clear();
 			break;
 		default:
 			error("Invalid GuiObject type " + std::to_string(object.type) + ".");
@@ -70,12 +89,26 @@ void Gui::setObject(size_t objectIndex, GuiObject object) {
 	objectPool[objectIndex] = object;
 }
 
+std::string getNameFromType(const GuiObjectType typeName) {
+	// If-else because I don't want to deal with a map.
+	if (GuiObjectType_window == typeName) {
+		return "window";
+	}
+	else if (GuiObjectType_image == typeName) {
+		return "image";
+	}
+	return "invalid";
+}
+
 GuiObjectType getTypeFromName(const std::string typeName) {
 	// Indexing type by name instead of integer is harder on C++, but this way the enumeration can't get out of sync
 	// with DL.
 	// If-else because I don't want to deal with a map.
 	if ("window" == typeName) {
 		return GuiObjectType_window;
+	}
+	else if ("image" == typeName) {
+		return GuiObjectType_image;
 	}
 	return GuiObjectType_invalid;
 }
@@ -91,6 +124,7 @@ dl_error_t guiObject_destructor(duckVM_gclist_t *gclist, duckVM_object_t *userOb
 	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
 	size_t index = (size_t) userObject;
 	(void) gui->freeObject(index);
+	debug("GuiObject: DESTRUCT");
 
 	return e;
 }
@@ -101,8 +135,6 @@ dl_error_t gui_callback_makeInstance(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 
 	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
-
-	debug("make-instance");
 
 	// Fetch type name.
 	dl_bool_t isString;
@@ -131,14 +163,51 @@ dl_error_t gui_callback_makeInstance(duckVM_t *duckVM) {
 	return e;
 }
 
+// Stack is empty.
+dl_error_t GuiObject::pushVisible(duckVM_t *duckVM) {
+	dl_error_t e = dl_error_ok;
+	// stack:
+
+	e = duckVM_pushBoolean(duckVM);
+	if (e) return e;
+	// stack: false
+	e = duckVM_setBoolean(duckVM, visible);
+	if (e) return e;
+	// stack: visible
+
+	return e;
+}
+
+// The value to set the field "value" to is the top object in the `duckVM` stack. Do not pop that object off. Only copy.
+dl_error_t GuiObject::setVisible(duckVM_t *duckVM) {
+	dl_error_t e = dl_error_ok;
+	// stack:
+
+	{
+		dl_bool_t isBoolean;
+		e = duckVM_isBoolean(duckVM, &isBoolean);
+		if (e) return e;
+		if (!isBoolean) {
+			error("\"visible\" field may only be set to a boolean.");
+			return dl_error_invalidValue;
+		}
+	}
+	{
+		dl_bool_t boolean;
+		e = duckVM_copyBoolean(duckVM, &boolean);
+		if (e) return e;
+		visible = boolean;
+	}
+
+	return e;
+}
+
 // gui-get-member object::GuiObject name::String
 dl_error_t gui_callback_getMember(duckVM_t *duckVM) {
 	dl_error_t e = dl_error_ok;
 	// stack: object name value
 
 	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
-
-	debug("get-member");
 
 	duckVM_object_type_t type;
 	e = duckVM_typeOf(duckVM, &type);
@@ -193,6 +262,15 @@ dl_error_t gui_callback_getMember(duckVM_t *duckVM) {
 		e = object.window.pushMember(duckVM, name);
 		if (e) return e;
 		break;
+	case GuiObjectType_image:
+		if (name == "visible") {
+			e = object.pushVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.image.pushMember(duckVM, name);
+		if (e) return e;
+		break;
 	default:
 		error("Unsupported GuiObject type.");
 		return dl_error_invalidValue;
@@ -208,8 +286,6 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 	// stack: object name value
 
 	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
-
-	debug("set-member");
 
 	duckVM_object_type_t type;
 	e = duckVM_typeOf(duckVM, &type);
@@ -267,6 +343,15 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 		e = object.window.setMember(duckVM, name);
 		if (e) return e;
 		break;
+	case GuiObjectType_image:
+		if (name == "visible") {
+			e = object.setVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.image.setMember(duckVM, name);
+		if (e) return e;
+		break;
 	default:
 		error("Unsupported GuiObject type.");
 		return dl_error_invalidValue;
@@ -285,27 +370,27 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 }
 
 
-dl_error_t getColorType(duckVM_t *duckVM, dl_size_t *type) {
+dl_error_t getGlobalType(duckVM_t *duckVM, std::string globalName, dl_size_t *type) {
 	dl_error_t e = dl_error_ok;
 	// stack:
 
-	// Got the composite, but we don't know what type it should be. Find the value of "color-type".
+	// Got the composite, but we don't know what type it should be. Find the value of "(object)-type".
 	auto *duckLisp = static_cast<duckLisp_t *>(getUserDataByName(duckVM, "duck-lisp"));
-	dl_ptrdiff_t key = duckLisp_symbol_nameToValue(duckLisp, DL_STR("color-type"));
+	dl_ptrdiff_t key = duckLisp_symbol_nameToValue(duckLisp, (dl_uint8_t *) globalName.c_str(), globalName.length());
 	if (key < 0) {
-		error("Global \"color-type\" is undefined.");
+		error("Global \"" + globalName + "\" is undefined.");
 		return dl_error_invalidValue;
 	}
 	e = duckVM_pushGlobal(duckVM, key);
 	if (e) return e;
-	// stack: color-type
+	// stack: (object)-type
 
 	{
-		duckVM_object_type_t colorTypeType;
-		e = duckVM_typeOf(duckVM, &colorTypeType);
+		duckVM_object_type_t objectTypeType;
+		e = duckVM_typeOf(duckVM, &objectTypeType);
 		if (e) return e;
-		if (colorTypeType != duckVM_object_type_type) {
-			error("Global \"color-type\" should be a type value.");
+		if (objectTypeType != duckVM_object_type_type) {
+			error("Global \"" + globalName + "\" should be a type value.");
 			return dl_error_invalidValue;
 		}
 	}
@@ -316,6 +401,146 @@ dl_error_t getColorType(duckVM_t *duckVM, dl_size_t *type) {
 	e = duckVM_pop(duckVM);
 	if (e) return e;
 	// stack:
+
+	return e;
+}
+
+dl_error_t pushP2(duckVM_t *duckVM, dl_ptrdiff_t x, dl_ptrdiff_t y) {
+	dl_error_t e = dl_error_ok;
+
+	{
+		dl_size_t p2Type;
+		e = getGlobalType(duckVM, "p2-type", &p2Type);
+		if (e) return e;
+
+		e = duckVM_pushComposite(duckVM, p2Type);
+		if (e) return e;
+		// stack: (p2 nil)
+	}
+
+	e = duckVM_pushVector(duckVM, 2);
+	if (e) return e;
+	// stack: (p2 nil) [nil nil]
+	e = duckVM_pushInteger(duckVM);
+	if (e) return e;
+	// stack: (p2 nil) [nil nil] 0
+	e = duckVM_setInteger(duckVM, x);
+	if (e) return e;
+	// stack: (p2 nil) [nil nil] x
+	e = duckVM_setElement(duckVM, 0, -2);
+	if (e) return e;
+	// stack: (p2 nil) [x nil] x
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: (p2 nil) [x nil]
+
+	e = duckVM_pushInteger(duckVM);
+	if (e) return e;
+	// stack: (p2 nil) [x nil] 0
+	e = duckVM_setInteger(duckVM, y);
+	if (e) return e;
+	// stack: (p2 nil) [x nil] y
+	e = duckVM_setElement(duckVM, 1, -2);
+	if (e) return e;
+	// stack: (p2 nil) [x y] y
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: (p2 nil) [x y]
+	e = duckVM_setCompositeValue(duckVM, -2);
+	if (e) return e;
+	// stack: (p2 [x y]) [x y]
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: (p2 [x y])
+
+	return e;
+}
+
+dl_error_t copyP2(duckVM_t *duckVM, dl_ptrdiff_t *x, dl_ptrdiff_t *y, std::string widgetName, std::string fieldName) {
+	dl_error_t e = dl_error_ok;
+	std::string p2Error = widgetName + "::" + fieldName + " may only be assigned a P2.";
+	std::string internalP2Error = "Internal representation of \"p2-type\" composites must be a vector of integers of length 2";
+
+	// We expect the argument to be a vector of 2 integers wrapped in a composite of the type stored in the global
+	// variable "p2-type".
+	{
+		duckVM_object_type_t objectType;
+		e = duckVM_typeOf(duckVM, &objectType);
+		if (e) return e;
+		if (duckVM_object_type_composite != objectType) {
+			error(p2Error);
+			return dl_error_invalidValue;
+		}
+	}
+	{
+		dl_size_t compositeType;
+		e = duckVM_copyCompositeType(duckVM, &compositeType);
+		if (e) return e;
+
+		dl_size_t p2Type;
+		e = getGlobalType(duckVM, "p2-type", &p2Type);
+		if (e) return e;
+
+		if (compositeType != p2Type) {
+			error(p2Error);
+			return dl_error_invalidValue;
+		}
+	}
+	e = duckVM_pushCompositeValue(duckVM);
+	if (e) return e;
+	// stack: value (composite-value value)
+
+	// Now check if the value is a vector of length 3.
+	{
+		dl_bool_t isVector;
+		e = duckVM_isVector(duckVM, &isVector);
+		if (e) return e;
+		if (!isVector) {
+			error(internalP2Error);
+			return dl_error_invalidValue;
+		}
+	}
+	dl_size_t vector_length;
+	e = duckVM_length(duckVM, &vector_length);
+	if (e) return e;
+	if (vector_length != 2) {
+		error(internalP2Error);
+		return dl_error_invalidValue;
+	}
+
+	// Check that every value is an integer and collect the integer values into a C++ vector.
+	std::vector<int> vec2 = {0, 0};
+	for (size_t vector_index = 0; vector_index < vector_length; vector_index++) {
+		e = duckVM_pushElement(duckVM, vector_index);
+		if (e) return e;
+		// stack: value (composite-value value) (elt (composite-value) ,vector_index)
+		{
+			dl_bool_t isInteger;
+			e = duckVM_isInteger(duckVM, &isInteger);
+			if (e) return e;
+			if (!isInteger) {
+				error(internalP2Error);
+				return dl_error_invalidValue;
+			}
+		}
+		{
+			dl_ptrdiff_t integer;
+			e = duckVM_copySignedInteger(duckVM, &integer);
+			if (e) return e;
+			// Everything looks good so far! Copy into temporary C++ p2 buffer.
+			vec2[vector_index] = integer;  // Cast: dl_ptrdiff_t -> int
+		}
+		e = duckVM_pop(duckVM);
+		if (e) return e;
+		// stack: value (composite-value value)
+	}
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: value
+
+	// All checks passed. Perform the assignment.
+	*x = vec2[0];
+	*y = vec2[1];
 
 	return e;
 }
@@ -347,7 +572,7 @@ dl_error_t GuiWidgetWindow::setMember(duckVM_t *duckVM, const std::string name) 
 			if (e) return e;
 
 			dl_size_t colorType;
-			e = getColorType(duckVM, &colorType);
+			e = getGlobalType(duckVM, "color-type", &colorType);
 			if (e) return e;
 
 			if (compositeType != colorType) {
@@ -432,7 +657,7 @@ dl_error_t GuiWidgetWindow::pushMember(duckVM_t *duckVM, const std::string name)
 	if ("background-color" == name) {
 		{
 			dl_size_t colorType;
-			e = getColorType(duckVM, &colorType);
+			e = getGlobalType(duckVM, "color-type", &colorType);
 			if (e) return e;
 
 			e = duckVM_pushComposite(duckVM, colorType);
@@ -473,6 +698,81 @@ dl_error_t GuiWidgetWindow::pushMember(duckVM_t *duckVM, const std::string name)
 
 	return e;
 }
+
+// Set fields in `GuiWidgetImage`. `name` is the field name. The value to set the field to is the top object in the
+// `duckVM` stack. Do not pop that object off. Only copy.
+dl_error_t GuiWidgetImage::setMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+	const char *widget = "image";
+	// stack: value
+
+	if ("file" == name) {
+		// We expect the argument to be a string.
+		{
+			dl_bool_t isString;
+			e = duckVM_isString(duckVM, &isString);
+			if (e) return e;
+			if (!isString) {
+				error("image::file may only be assigned a file path (a string).");
+				return dl_error_invalidValue;
+			}
+		}
+
+		{
+			dl_uint8_t *cFileString = nullptr;
+			dl_size_t cFileString_length = 0;
+			e = duckVM_copyString(duckVM, &cFileString, &cFileString_length);
+			if (e) return e;
+			file = assetNameToFileName(std::string((char *) cFileString, cFileString_length));
+		}
+	}
+	else if ("position" == name) {
+		dl_ptrdiff_t x, y;
+		e = copyP2(duckVM, &x, &y, widget, name);
+		if (e) return e;
+		rect.x = x; rect.y = y;
+	}
+	else if ("dimensions" == name) {
+		dl_ptrdiff_t w, h;
+		e = copyP2(duckVM, &w, &h, widget, name);
+		if (e) return e;
+		rect.w = w; rect.h = h;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI image widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
+
+// Push a field in `GuiWidgetWindow` on the stack. `name` is the field name.
+dl_error_t GuiWidgetImage::pushMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+	// stack:
+
+	if ("file" == name) {
+		e = duckVM_pushString(duckVM, (dl_uint8_t *) file.c_str(), file.length());
+		if (e) return e;
+		// stack: file
+	}
+	else if ("position" == name) {
+		e = pushP2(duckVM, rect.x, rect.y);
+		if (e) return e;
+	}
+	else if ("dimensions" == name) {
+		e = pushP2(duckVM, rect.w, rect.h);
+		if (e) return e;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI image widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
 
 dl_error_t gui_generator_present(duckLisp_t *c,
                                  duckLisp_compileState_t *cs,

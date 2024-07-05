@@ -51,7 +51,7 @@ dl_error_t script_action_include(duckLisp_t *dlc, duckLisp_ast_compoundExpressio
 
 	// Sanitize script name. Must only contain alphanumeric characters.
 
-	std::regex nameRegex("[a-z0-9]+");
+	std::regex nameRegex("[a-z0-9_-]+");
 	auto valid = std::regex_match(scriptName, nameRegex);
 	if (!valid) {
 		error("Attempted to include script with an illegal name: \"" + scriptName + "\"");

@@ -1,101 +1,29 @@
 print "GUI VM started\n"
 
 (include library)
-
-;; Pure DL starts here.
-
-;; C++ will inspect the innards of many of these objects. Any code marked "introspected" must not be changed so that the
-;; structure or name of the data changes.
-
-;; Introspected.
-global color-type (make-type)
-;; Keep console from overriding this type for any functions in this script by defining it as a separate local
-;; variable. Any function in this file that uses this type will create a closure instead of a global reference.
-var color-type color-type
-(defun Color (r g b)
-  ;; Introspected.
-  make-instance color-type (vector r g b) nil)
-#(global Color #Color)
-
-var blue Color 0 0 255
-#(global blue blue)
-
-
-;; Introspected.
-var p2-type (make-type)
-#(global p2-type p2-type)
-;; 2D point
-(defun P2 (x y)
-  ;; Introspected.
-  make-instance p2-type (vector x y) nil)
-#(global P2 P2)
-
-
-;;; Extended DL starts here.
-
-;; This will create a constructor named `name'::Identifier for a GUI object of the type specified by
-;; `type-name'::Identifier.
-(defmacro defconstructor (name type-name) (L)
-  ` (#global (, name) lambda ()
-             gui-make-instance , (symbol-string type-name)))
-(declare defconstructor (L L)
-         declare-identifier (infer-and-get-next-argument) ())
-
-;; This will create two functions "_name" and "set-_name". If the name is "_name" then the GUI object member that will
-;; be read and written is "name". `name' is an identifier. "set-_name" is then registered with `set' so that
-;; `set (_name object) value` may be used instead of `set-_name object value`.
-(defmacro defaccessor (name) (L)
-  var object (gensym "object")
-  var setter-name (intern (concatenate "set-" (symbol-string name)))
-  var value (gensym "value")
-  var member-name cdr symbol-string name
-  ` (noscope
-     ;; Getter
-     (#defun (, name) ((, object))
-       gui-get-member , object , member-name)
-     ;; (#global (, name) (, name))
-     ;; Setter
-     (#defun (, setter-name) ((, object) (, value))
-       gui-set-member , object , member-name , value)
-     ;; (#global (, setter-name) (, setter-name))
-     ;; Register setter with `set'.
-     #(extend (set ((, name) (, object)) (, value))
-       ;; The notorious nested quasiquote. Bask in its glory.
-       ;; DL's parenthesis inference and lack of reader macros made it way worse.
-       (` ((, setter-name) ((, (' ,)) (, object)) ((, (' ,)) (, value)))))))
-(declare defaccessor (L)
-         (()
-          ;; Getter
-          declare-identifier (infer-and-get-next-argument) quote #(I)
-          ;; Setter
-          declare-identifier (concatenate "set-" (symbol-string (infer-and-get-next-argument))) quote #(I)))
-
-defconstructor Window-Handle window
-defconstructor Texture texture
-
-defaccessor _background-color
-defaccessor _file
-defaccessor _position
-defaccessor _dimensions
-
-(defmacro deflayout (name &rest body) (L &rest 1 I)
-          #(` (global (, name) (lambda () (,@ body)))))
-
-
-
-;; Start main script.
+(include gui-boilerplate)
 
 var window (Window-Handle)
 
-;; var knight (Texture)
-;; set _file knight  "../res/chess/images/knight.png"
-;; set _visible false
+var knight (Image)
+set _file knight  "main-menu/images/knight.png"
+set _visible knight  false
+
+var knight2 (Image)
+var knight3 (Image)
+set _file knight2  "main-menu/images/knight.png"
+set _file knight3  "main-menu/images/knight.png"
 
 (deflayout main-menu
-           set _background-color window  blue
-           println _background-color window
 
-           ;; set _position knight  P2 0 0
-           ;; set _dimensions knight  _dimensions window
-           ;; set _visible true
+           set _background-color window  red
+
+           set _position knight  P2 400 100
+           set _dimensions knight  P2 512 512
+           set _visible knight  true
+
+           set _position knight2  P2 0 0
+           set _dimensions knight2  P2 512 512
+           set _position knight3  P2 800 200
+           set _dimensions knight3  P2 256 256
            )
