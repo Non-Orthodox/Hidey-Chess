@@ -38,6 +38,10 @@ void Gui::render(RenderWindow *window) {
 		GuiObject &object = objectPool[object_index];
 		switch (object.type) {
 		case GuiObjectType_free: break;
+		case GuiObjectType_window:
+			// window->setBackground(object.window.backgroundColor);
+			window->clear();
+			break;
 		case GuiObjectType_image: {
 			auto &image = object.image;
 			// Load texture if not already loaded.
@@ -54,9 +58,9 @@ void Gui::render(RenderWindow *window) {
 			window->render(image.texture, image.rect);
 			break;
 		}
-		case GuiObjectType_window:
-			// window->setBackground(object.window.backgroundColor);
-			window->clear();
+		case GuiObjectType_board:
+			if (!object.visible) break;
+			// window->renderBoard(board.rect);
 			break;
 		default:
 			error("Invalid GuiObject type " + std::to_string(object.type) + ".");
@@ -104,6 +108,9 @@ std::string getNameFromType(const GuiObjectType typeName) {
 	else if (GuiObjectType_image == typeName) {
 		return "image";
 	}
+	else if (GuiObjectType_board == typeName) {
+		return "board";
+	}
 	return "invalid";
 }
 
@@ -116,6 +123,9 @@ GuiObjectType getTypeFromName(const std::string typeName) {
 	}
 	else if ("image" == typeName) {
 		return GuiObjectType_image;
+	}
+	else if ("board" == typeName) {
+		return GuiObjectType_board;
 	}
 	return GuiObjectType_invalid;
 }
@@ -278,6 +288,15 @@ dl_error_t gui_callback_getMember(duckVM_t *duckVM) {
 		e = object.image.pushMember(duckVM, name);
 		if (e) return e;
 		break;
+	case GuiObjectType_board:
+		if (name == "visible") {
+			e = object.pushVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.board.pushMember(duckVM, name);
+		if (e) return e;
+		break;
 	default:
 		error("Unsupported GuiObject type.");
 		return dl_error_invalidValue;
@@ -357,6 +376,15 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 			break;
 		}
 		e = object.image.setMember(duckVM, name);
+		if (e) return e;
+		break;
+	case GuiObjectType_board:
+		if (name == "visible") {
+			e = object.setVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.board.setMember(duckVM, name);
 		if (e) return e;
 		break;
 	default:
@@ -755,7 +783,7 @@ dl_error_t GuiWidgetImage::setMember(duckVM_t *duckVM, const std::string name) {
 }
 
 
-// Push a field in `GuiWidgetWindow` on the stack. `name` is the field name.
+// Push a field in `GuiWidgetImage` on the stack. `name` is the field name.
 dl_error_t GuiWidgetImage::pushMember(duckVM_t *duckVM, const std::string name) {
 	dl_error_t e = dl_error_ok;
 	// stack:
@@ -775,6 +803,54 @@ dl_error_t GuiWidgetImage::pushMember(duckVM_t *duckVM, const std::string name) 
 	}
 	else {
 		error("\"" + name + "\" is not a valid GUI image widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
+
+// Set fields in `GuiWidgetBoard`. `name` is the field name. The value to set the field to is the top object in the
+// `duckVM` stack. Do not pop that object off. Only copy.
+dl_error_t GuiWidgetBoard::setMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+	const char *widget = "board";
+	// stack: value
+
+	if ("position" == name) {
+		dl_ptrdiff_t x, y;
+		e = copyP2(duckVM, &x, &y, widget, name);
+		if (e) return e;
+		rect.x = x; rect.y = y;
+	}
+	else if ("dimensions" == name) {
+		dl_ptrdiff_t w, h;
+		e = copyP2(duckVM, &w, &h, widget, name);
+		if (e) return e;
+		rect.w = w; rect.h = h;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI board widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
+// Push a field in `GuiWidgetBoard` on the stack. `name` is the field name.
+dl_error_t GuiWidgetBoard::pushMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+
+	if ("position" == name) {
+		e = pushP2(duckVM, rect.x, rect.y);
+		if (e) return e;
+	}
+	else if ("dimensions" == name) {
+		e = pushP2(duckVM, rect.w, rect.h);
+		if (e) return e;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI board widget field name.");
 		return dl_error_invalidValue;
 	}
 

@@ -14,6 +14,8 @@ var knight3 (Image)
 set _file knight2  "main-menu/images/knight.png"
 set _file knight3  "main-menu/images/knight.png"
 
+var board (Board-Handle)
+
 (deflayout main-menu
 
            set _background-color window  red
@@ -26,4 +28,7 @@ set _file knight3  "main-menu/images/knight.png"
            set _dimensions knight2  P2 512 512
            set _position knight3  P2 800 200
            set _dimensions knight3  P2 256 256
+
+           set _position board  P2 0 0
+           set _dimensions board  P2 600 600
            )
