@@ -31,4 +31,32 @@ var board (Board-Handle)
 
            set _position board  P2 0 0
            set _dimensions board  P2 600 600
+
+           (()
+            var rect (list (Rectangle))
+            set _position car rect  P2 0 0
+            set _dimensions car rect  P2 300 300
+            set _color car rect  red
+
+            var rect (list (Rectangle))
+            set _position car rect  P2 100 100
+            set _dimensions car rect  P2 300 300
+            set _color car rect  green)
+
+           var rect (Rectangle)
+           set _position rect  P2 200 200
+           set _dimensions rect  P2 300 300
+           set _color rect  red
+
+           gc
+
+           var rect (Rectangle)
+           set _position rect  P2 300 300
+           set _dimensions rect  P2 300 300
+           set _color rect  green
+
+           var rect (Rectangle)
+           set _position rect  P2 400 400
+           set _dimensions rect  P2 300 300
+           set _color rect  blue
            )

@@ -15,7 +15,7 @@ public:
 
     int getRefreshRate();
 
-private:
     SDL_Window* window_;
     SDL_Renderer* renderer_;
+private:
 };

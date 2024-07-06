@@ -77,9 +77,11 @@ var p2-type (make-type)
 defconstructor Window-Handle window
 defconstructor Image image
 defconstructor Board-Handle board
+defconstructor Rectangle rectangle
 
 defaccessor _background-color
 defaccessor _file
 defaccessor _position
 defaccessor _dimensions
 defaccessor _visible
+defaccessor _color
