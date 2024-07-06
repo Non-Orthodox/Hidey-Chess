@@ -611,3 +611,12 @@ dl_error_t script_callback_set(duckVM_t *duckVM) {
 	// stack: value
 	return e;
 }
+
+// (gc)
+dl_error_t script_callback_gc(duckVM_t *duckVM) {
+	dl_error_t e = dl_error_ok;
+	debug("FORCE COLLECT");
+	e = duckVM_garbageCollect(duckVM);
+	if (e) return e;
+	return duckVM_pushNil(duckVM);
+}

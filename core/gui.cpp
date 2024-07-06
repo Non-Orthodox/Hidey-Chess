@@ -31,10 +31,13 @@ int Gui::setupDucklisp(std::shared_ptr<DuckVM> duckVM, std::shared_ptr<DuckLisp>
 }
 
 void Gui::render(RenderWindow *window) {
-	// TODO: Traverse linked list, not vector itself. Will preserve render order. This will also make it so free objects
-	//       do not have to be skipped over.
+	// Traverse linked list, not vector itself to preserve render order. This also has the bonus of skipping over free
+	// objects.
 	size_t objectPool_length = objectPool.size();
-	for (size_t object_index = 0; object_index < objectPool_length; object_index++) {
+	if (objectPool_length == 0) return;
+	size_t previousObjectIndex = objectPool_length;
+	size_t object_index = this->firstObjectIndex;
+	while (object_index != previousObjectIndex) {
 		GuiObject &object = objectPool[object_index];
 		switch (object.type) {
 		case GuiObjectType_free: break;
@@ -60,35 +63,90 @@ void Gui::render(RenderWindow *window) {
 		}
 		case GuiObjectType_board:
 			if (!object.visible) break;
-			// window->renderBoard(board.rect);
+			// window->renderBoard(object.board.rect);
 			break;
+		case GuiObjectType_rectangle: {
+			if (!object.visible) break;
+			auto &color = object.rectangle.color;
+			// TODO: Replace this with a call to `RenderWindow` as soon as possible.
+			SDL_SetRenderDrawColor(window->renderer_, color[0], color[1], color[2], 255);
+			SDL_RenderFillRect(window->renderer_, &object.rectangle.rect);
+			break;
+		}
 		default:
 			error("Invalid GuiObject type " + std::to_string(object.type) + ".");
 		}
+
+		previousObjectIndex = object_index;
+		object_index = object.forwardsObjectIndex;
 	}
 }
 
 
 GuiObject::GuiObject(GuiObjectType type) {
 	this->type = type;
-	if (type == GuiObjectType_window) {
-		this->window = GuiWidgetWindow();
-	}
 }
 
 size_t Gui::allocateObject(GuiObjectType type) {
 	if (freeList.empty()) {
 		objectPool.push_back(GuiObject(type));
-		return objectPool.size() - 1;
+		size_t objectPool_length = objectPool.size();
+		size_t originalObjectPool_length = objectPool_length - 1;
+		size_t index = originalObjectPool_length;
+		auto &object = objectPool[index];
+		if (originalObjectPool_length == 0) {
+			// Is first and last link.
+			object.forwardsObjectIndex = index;
+			object.backwardsObjectIndex = index;
+			firstObjectIndex = 0;
+			lastObjectIndex = 0;
+		}
+		else {
+			// Is last link.
+			object.backwardsObjectIndex = lastObjectIndex;
+			object.forwardsObjectIndex = index;
+			objectPool[lastObjectIndex].forwardsObjectIndex = index;
+			lastObjectIndex = originalObjectPool_length;
+		}
+		return index;
 	}
 	else {
 		size_t index = freeList.back();
+		auto &object = objectPool[index];
+		// Is last link.
+		object.forwardsObjectIndex = index;
+		object.backwardsObjectIndex = lastObjectIndex;
+		objectPool[lastObjectIndex].forwardsObjectIndex = index;
+		lastObjectIndex = index;
 		freeList.pop_back();
 		return index;
 	}
 }
 
 void Gui::freeObject(size_t objectIndex) {
+	auto &object = objectPool[objectIndex];
+	auto backwardsObjectIndex = object.backwardsObjectIndex;
+	auto forwardsObjectIndex = object.forwardsObjectIndex;
+	if (backwardsObjectIndex != objectIndex) {
+		auto &backwardsObject = objectPool[backwardsObjectIndex];
+		if (forwardsObjectIndex == objectIndex) {
+			// End of list.
+			backwardsObject.forwardsObjectIndex = backwardsObjectIndex;
+		}
+		else {
+			backwardsObject.forwardsObjectIndex = forwardsObjectIndex;
+		}
+	}
+	if (forwardsObjectIndex != objectIndex) {
+		auto &forwardsObject = objectPool[forwardsObjectIndex];
+		if (backwardsObjectIndex == objectIndex) {
+			// Start of list.
+			forwardsObject.backwardsObjectIndex = forwardsObjectIndex;
+		}
+		else {
+			forwardsObject.backwardsObjectIndex = backwardsObjectIndex;
+		}
+	}
 	freeList.push_back(objectIndex);
 }
 
@@ -111,6 +169,9 @@ std::string getNameFromType(const GuiObjectType typeName) {
 	else if (GuiObjectType_board == typeName) {
 		return "board";
 	}
+	else if (GuiObjectType_rectangle == typeName) {
+		return "rectangle";
+	}
 	return "invalid";
 }
 
@@ -127,6 +188,9 @@ GuiObjectType getTypeFromName(const std::string typeName) {
 	else if ("board" == typeName) {
 		return GuiObjectType_board;
 	}
+	else if ("rectangle" == typeName) {
+		return GuiObjectType_rectangle;
+	}
 	return GuiObjectType_invalid;
 }
 
@@ -139,7 +203,7 @@ dl_error_t guiObject_destructor(duckVM_gclist_t *gclist, duckVM_object_t *userOb
 
 	duckVM_t *duckVM = gclist->duckVM;
 	Gui *gui = static_cast<Gui *>(getUserDataByName(duckVM, "gui"));
-	size_t index = (size_t) userObject;
+	size_t index = (size_t) userObject->value.user.data;
 	(void) gui->freeObject(index);
 	debug("GuiObject: DESTRUCT");
 
@@ -297,6 +361,15 @@ dl_error_t gui_callback_getMember(duckVM_t *duckVM) {
 		e = object.board.pushMember(duckVM, name);
 		if (e) return e;
 		break;
+	case GuiObjectType_rectangle:
+		if (name == "visible") {
+			e = object.pushVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.rectangle.pushMember(duckVM, name);
+		if (e) return e;
+		break;
 	default:
 		error("Unsupported GuiObject type.");
 		return dl_error_invalidValue;
@@ -385,6 +458,15 @@ dl_error_t gui_callback_setMember(duckVM_t *duckVM) {
 			break;
 		}
 		e = object.board.setMember(duckVM, name);
+		if (e) return e;
+		break;
+	case GuiObjectType_rectangle:
+		if (name == "visible") {
+			e = object.setVisible(duckVM);
+			if (e) return e;
+			break;
+		}
+		e = object.rectangle.setMember(duckVM, name);
 		if (e) return e;
 		break;
 	default:
@@ -580,101 +662,152 @@ dl_error_t copyP2(duckVM_t *duckVM, dl_ptrdiff_t *x, dl_ptrdiff_t *y, std::strin
 	return e;
 }
 
+dl_error_t pushColor(duckVM_t *duckVM, std::vector<uint8_t> color) {
+	dl_error_t e = dl_error_ok;
+
+	{
+		dl_size_t colorType;
+		e = getGlobalType(duckVM, "color-type", &colorType);
+		if (e) return e;
+
+		e = duckVM_pushComposite(duckVM, colorType);
+		if (e) return e;
+		// stack: (color nil)
+	}
+
+	static constexpr size_t vector_length = 3;
+	e = duckVM_pushVector(duckVM, vector_length);
+	if (e) return e;
+	// stack: (color nil) [nil nil nil]
+	for (int i = 0; i < vector_length; i++) {
+		e = duckVM_pushInteger(duckVM);
+		if (e) return e;
+		// stack: (color nil) […] 0
+		e = duckVM_setInteger(duckVM, color[i]);
+		if (e) return e;
+		// stack: (color nil) […] color[i]
+		e = duckVM_setElement(duckVM, i, -2);
+		if (e) return e;
+		e = duckVM_pop(duckVM);
+		if (e) return e;
+		// stack: (color nil) […]
+	}
+	// stack: (color nil) [color[0] color[1] color[2]]
+	e = duckVM_setCompositeValue(duckVM, -2);
+	if (e) return e;
+	// stack: (color [color[0] color[1] color[2]])
+	//        [color[0] color[1] color[2]]
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: (color [color[0] color[1] color[2]])
+
+	return e;
+}
+
+dl_error_t copyColor(duckVM_t *duckVM, std::vector<uint8_t> *color, std::string widgetName, std::string fieldName) {
+	dl_error_t e = dl_error_ok;
+	std::string colorError = widgetName + "::" + fieldName + " may only be assigned a color.";
+	std::string internalColorError = "Internal representation of \"color-type\" composites must be a vector of integers of length 3, where each integer is in the range [0, 255]";
+
+	// We expect the argument to be a vector of integers of length 3 wrapped in a composite of the type stored in
+	// the global variable "color-type". Each integer must be in the range [0 255].
+	{
+		duckVM_object_type_t objectType;
+		e = duckVM_typeOf(duckVM, &objectType);
+		if (e) return e;
+		if (duckVM_object_type_composite != objectType) {
+			error(colorError);
+			return dl_error_invalidValue;
+		}
+	}
+	{
+		dl_size_t compositeType;
+		e = duckVM_copyCompositeType(duckVM, &compositeType);
+		if (e) return e;
+
+		dl_size_t colorType;
+		e = getGlobalType(duckVM, "color-type", &colorType);
+		if (e) return e;
+
+		if (compositeType != colorType) {
+			error(colorError);
+			return dl_error_invalidValue;
+		}
+	}
+	e = duckVM_pushCompositeValue(duckVM);
+	if (e) return e;
+	// stack: value (composite-value value)
+
+	// Now check if the value is a vector of length 3.
+	{
+		dl_bool_t isVector;
+		e = duckVM_isVector(duckVM, &isVector);
+		if (e) return e;
+		if (!isVector) {
+			error(internalColorError);
+			return dl_error_invalidValue;
+		}
+	}
+	dl_size_t vector_length;
+	e = duckVM_length(duckVM, &vector_length);
+	if (e) return e;
+	if (vector_length != 3) {
+		error(internalColorError);
+		return dl_error_invalidValue;
+	}
+
+	// Check that every value is an integer between 0 and 255, and collect the integer values into a C++ vector.
+	std::vector<uint8_t> vec3 = {0, 0, 0};
+	for (size_t vector_index = 0; vector_index < 3; vector_index++) {
+		e = duckVM_pushElement(duckVM, vector_index);
+		if (e) return e;
+		// stack: value (composite-value value) (elt (composite-value) ,vector_index)
+		{
+			dl_bool_t isInteger;
+			e = duckVM_isInteger(duckVM, &isInteger);
+			if (e) return e;
+			if (!isInteger) {
+				error(internalColorError);
+				return dl_error_invalidValue;
+			}
+		}
+		{
+			dl_size_t integer;
+			e = duckVM_copyUnsignedInteger(duckVM, &integer);
+			if (e) return e;
+			if (integer > 255) {
+				error(internalColorError);
+				return dl_error_invalidValue;
+			}
+			// Everything looks good so far! Copy into temporary C++ color buffer.
+			vec3[vector_index] = integer;  // Cast: dl_size_t -> uint8_t
+		}
+		e = duckVM_pop(duckVM);
+		if (e) return e;
+		// stack: value (composite-value value)
+	}
+	e = duckVM_pop(duckVM);
+	if (e) return e;
+	// stack: value
+
+	// All checks passed. Perform the assignment.
+	for (int i = 0; i < vector_length; i++) {
+		(*color)[i] = vec3[i];
+	}
+
+	return e;
+}
+
 
 // Set fields in `GuiWidgetWindow`. `name` is the field name. The value to set the field to is the top object in the
 // `duckVM` stack. Do not pop that object off. Only copy.
 dl_error_t GuiWidgetWindow::setMember(duckVM_t *duckVM, const std::string name) {
 	dl_error_t e = dl_error_ok;
-	// stack: value
-	std::string colorError = "window::background-color may only be assigned a color.";
-	std::string internalColorError = "Internal representation of \"color-type\" composites must be a vector of integers of length 3, where each integer is in the range [0, 255]";
+	std::string widget = "window";
 
 	if ("background-color" == name) {
-		// We expect the argument to be a vector of integers of length 3 wrapped in a composite of the type stored in
-		// the global variable "color-type". Each integer must be in the range [0 255].
-		{
-			duckVM_object_type_t objectType;
-			e = duckVM_typeOf(duckVM, &objectType);
-			if (e) return e;
-			if (duckVM_object_type_composite != objectType) {
-				error(colorError);
-				return dl_error_invalidValue;
-			}
-		}
-		{
-			dl_size_t compositeType;
-			e = duckVM_copyCompositeType(duckVM, &compositeType);
-			if (e) return e;
-
-			dl_size_t colorType;
-			e = getGlobalType(duckVM, "color-type", &colorType);
-			if (e) return e;
-
-			if (compositeType != colorType) {
-				error(colorError);
-				return dl_error_invalidValue;
-			}
-		}
-		e = duckVM_pushCompositeValue(duckVM);
+		e = copyColor(duckVM, &backgroundColor, widget, name);
 		if (e) return e;
-		// stack: value (composite-value value)
-
-		// Now check if the value is a vector of length 3.
-		{
-			dl_bool_t isVector;
-			e = duckVM_isVector(duckVM, &isVector);
-			if (e) return e;
-			if (!isVector) {
-				error(internalColorError);
-				return dl_error_invalidValue;
-			}
-		}
-		dl_size_t vector_length;
-		e = duckVM_length(duckVM, &vector_length);
-		if (e) return e;
-		if (vector_length != 3) {
-			error(internalColorError);
-			return dl_error_invalidValue;
-		}
-
-		// Check that every value is an integer between 0 and 255, and collect the integer values into a C++ vector.
-		std::vector<uint8_t> vec3 = {0, 0, 0};
-		for (size_t vector_index = 0; vector_index < 3; vector_index++) {
-			e = duckVM_pushElement(duckVM, vector_index);
-			if (e) return e;
-			// stack: value (composite-value value) (elt (composite-value) ,vector_index)
-			{
-				dl_bool_t isInteger;
-				e = duckVM_isInteger(duckVM, &isInteger);
-				if (e) return e;
-				if (!isInteger) {
-					error(internalColorError);
-					return dl_error_invalidValue;
-				}
-			}
-			{
-				dl_size_t integer;
-				e = duckVM_copyUnsignedInteger(duckVM, &integer);
-				if (e) return e;
-				if (integer > 255) {
-					error(internalColorError);
-					return dl_error_invalidValue;
-				}
-				// Everything looks good so far! Copy into temporary C++ color buffer.
-				vec3[vector_index] = integer;  // Cast: dl_size_t -> uint8_t
-			}
-			e = duckVM_pop(duckVM);
-			if (e) return e;
-			// stack: value (composite-value value)
-		}
-		e = duckVM_pop(duckVM);
-		if (e) return e;
-		// stack: value
-
-		// All checks passed. Perform the assignment.
-		for (int i = 0; i < vector_length; i++) {
-			backgroundColor[i] = vec3[i];
-		}
 	}
 	else {
 		error("\"" + name + "\" is not a valid GUI window widget field name.");
@@ -690,41 +823,8 @@ dl_error_t GuiWidgetWindow::pushMember(duckVM_t *duckVM, const std::string name)
 	// stack:
 
 	if ("background-color" == name) {
-		{
-			dl_size_t colorType;
-			e = getGlobalType(duckVM, "color-type", &colorType);
-			if (e) return e;
-
-			e = duckVM_pushComposite(duckVM, colorType);
-			if (e) return e;
-			// stack: (color nil)
-		}
-
-		static constexpr size_t vector_length = 3;
-		e = duckVM_pushVector(duckVM, vector_length);
+		e = pushColor(duckVM, backgroundColor);
 		if (e) return e;
-		// stack: (color nil) [nil nil nil]
-		for (int i = 0; i < vector_length; i++) {
-			e = duckVM_pushInteger(duckVM);
-			if (e) return e;
-			// stack: (color nil) […] 0
-			e = duckVM_setInteger(duckVM, backgroundColor[i]);
-			if (e) return e;
-			// stack: (color nil) […] backgroundColor[i]
-			e = duckVM_setElement(duckVM, i, -2);
-			if (e) return e;
-			e = duckVM_pop(duckVM);
-			if (e) return e;
-			// stack: (color nil) […]
-		}
-		// stack: (color nil) [backgroundColor[0] backgroundColor[1] backgroundColor[2]]
-		e = duckVM_setCompositeValue(duckVM, -2);
-		if (e) return e;
-		// stack: (color [backgroundColor[0] backgroundColor[1] backgroundColor[2]])
-		//        [backgroundColor[0] backgroundColor[1] backgroundColor[2]]
-		e = duckVM_pop(duckVM);
-		if (e) return e;
-		// stack: (color [backgroundColor[0] backgroundColor[1] backgroundColor[2]])
 	}
 	else {
 		error("\"" + name + "\" is not a valid GUI window widget field name.");
@@ -851,6 +951,63 @@ dl_error_t GuiWidgetBoard::pushMember(duckVM_t *duckVM, const std::string name) 
 	}
 	else {
 		error("\"" + name + "\" is not a valid GUI board widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
+
+// Set fields in `GuiWidgetRectangle`. `name` is the field name. The value to set the field to is the top object in the
+// `duckVM` stack. Do not pop that object off. Only copy.
+dl_error_t GuiWidgetRectangle::setMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+	const char *widget = "rectangle";
+	// stack: value
+
+	if ("color" == name) {
+		e = copyColor(duckVM, &color, widget, name);
+		if (e) return e;
+	}
+	else if ("position" == name) {
+		dl_ptrdiff_t x, y;
+		e = copyP2(duckVM, &x, &y, widget, name);
+		if (e) return e;
+		rect.x = x; rect.y = y;
+	}
+	else if ("dimensions" == name) {
+		dl_ptrdiff_t w, h;
+		e = copyP2(duckVM, &w, &h, widget, name);
+		if (e) return e;
+		rect.w = w; rect.h = h;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI " + widget + " widget field name.");
+		return dl_error_invalidValue;
+	}
+
+	return e;
+}
+
+// Push a field in `GuiWidgetRectangle` on the stack. `name` is the field name.
+dl_error_t GuiWidgetRectangle::pushMember(duckVM_t *duckVM, const std::string name) {
+	dl_error_t e = dl_error_ok;
+	std::string widget = "rectangle";
+
+	if ("color" == name) {
+		e = pushColor(duckVM, color);
+		if (e) return e;
+	}
+	else if ("position" == name) {
+		e = pushP2(duckVM, rect.x, rect.y);
+		if (e) return e;
+	}
+	else if ("dimensions" == name) {
+		e = pushP2(duckVM, rect.w, rect.h);
+		if (e) return e;
+	}
+	else {
+		error("\"" + name + "\" is not a valid GUI " + widget + " widget field name.");
 		return dl_error_invalidValue;
 	}
 
